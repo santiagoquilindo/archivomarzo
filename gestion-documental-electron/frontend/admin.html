@@ -380,22 +380,18 @@
     });
 
     async function viewDetail(id) {
-      const res = await fetch(`/api/documents/${id}`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/documents/${id}`, { credentials: 'include' });
       const doc = await res.json();
       alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
     }
 
     async function openDoc(id) {
-      const res = await fetch(`/api/documents/${id}/open`, { method: 'POST', credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/documents/${id}/open`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
-      if (res.ok) {
-        window.open('file://' + data.path);
-      } else {
-        alert(data.message);
+      if (!res.ok || !data.success) {
+        alert(data.message || 'No se pudo abrir el archivo');
       }
     }
-
-    loadUser();
   </script>
 </body>
 </html>
