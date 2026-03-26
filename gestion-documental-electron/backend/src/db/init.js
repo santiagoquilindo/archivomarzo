@@ -115,10 +115,18 @@ function initDatabase() {
     });
 
     upsert.finalize(() => {
-      console.log('Seed de usuarios aplicado. Credenciales: admin/admin123, user/user123');
-      if (require.main === module) {
-        db.close();
-      }
+      // Seed root folders
+      const testDocsPath = path.join(__dirname, '../../../test_docs').replace(/\\/g, '/');
+      db.run(`
+        INSERT OR IGNORE INTO root_folders (name, absolute_path, is_active, created_at, updated_at)
+        VALUES (?, ?, 1, ?, ?)
+      `, ['Test Documents', testDocsPath, createdAt, updatedAt], (err) => {
+        if (err) console.error('Error seeding root folder:', err);
+        else console.log('Seeded root folder: Test Documents at', testDocsPath);
+        if (require.main === module) {
+          db.close();
+        }
+      });
     });
   });
 }

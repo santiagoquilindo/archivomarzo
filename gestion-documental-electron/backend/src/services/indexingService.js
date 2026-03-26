@@ -1,23 +1,33 @@
+const fs = require('fs');
+const path = require('path');
 const { db } = require('../db/db');
 const { getAllRootFolders } = require('./rootFolderService');
 const { calculateFileHash } = require('./documentService');
-const fs = require('fs').promises;
-const path = require('path');
 
 async function runIndexing(userId) {
   const runId = await startIndexingRun();
-  let scanned = 0, indexed = 0, updated = 0, missing = 0, errors = 0;
+  const counters = { scanned: 0, indexed: 0, updated: 0, missing: 0, errors: 0 };
 
   try {
-    const rootFolders = await getAllRootFolders();
+    const allRootFolders = await getAllRootFolders();
+    console.log(`[INDEXING] Total root folders in DB: ${allRootFolders.length}`);
+    allRootFolders.forEach(folder => {
+      console.log(`[INDEXING] Folder ID: ${folder.id}, Name: ${folder.name}, Path: ${folder.absolute_path}, Active: ${folder.is_active}`);
+    });
+
+    const rootFolders = allRootFolders.filter(f => f.is_active);
+    console.log(`[INDEXING] Active root folders: ${rootFolders.length}`);
     for (const folder of rootFolders) {
-      if (!folder.is_active) continue;
-      await indexFolder(folder, runId, userId, { scanned, indexed, updated, missing, errors });
+      console.log(`[INDEXING] Processing active folder: ${folder.name}, path: ${folder.absolute_path}`);
+      await indexFolder(folder, runId, userId, counters);
     }
-    await finishIndexingRun(runId, 'completed', scanned, indexed, updated, missing, errors);
+    console.log(`[INDEXING] Final counters: scanned=${counters.scanned}, indexed=${counters.indexed}, updated=${counters.updated}, missing=${counters.missing}, errors=${counters.errors}`);
+    console.log(`[INDEXING] Completed run with scanned=${counters.scanned} indexed=${counters.indexed}`);
+    await finishIndexingRun(runId, 'completed', counters);
   } catch (error) {
     console.error('Indexing error:', error);
-    await finishIndexingRun(runId, 'failed', scanned, indexed, updated, missing, errors + 1, error.message);
+    counters.errors++;
+    await finishIndexingRun(runId, 'failed', counters, error.message);
   }
 }
 
@@ -31,34 +41,61 @@ async function startIndexingRun() {
   });
 }
 
-async function finishIndexingRun(runId, status, scanned, indexed, updated, missing, errors, notes = null) {
+async function finishIndexingRun(runId, status, counters, notes = null) {
   return new Promise((resolve, reject) => {
     const finishedAt = new Date().toISOString();
     db.run(
       'UPDATE indexing_runs SET finished_at = ?, status = ?, scanned_files_count = ?, indexed_files_count = ?, updated_files_count = ?, missing_files_count = ?, error_count = ?, notes = ? WHERE id = ?',
-      [finishedAt, status, scanned, indexed, updated, missing, errors, notes, runId],
+      [finishedAt, status, counters.scanned, counters.indexed, counters.updated, counters.missing, counters.errors, notes, runId],
       (err) => err ? reject(err) : resolve()
     );
   });
 }
 
 async function indexFolder(folder, runId, userId, counters) {
-  const { absolute_path: rootPath, id: rootId, name: rootName } = folder;
+  const { absolute_path: rootPathRaw, id: rootId, name: rootName } = folder;
+  const rootPath = path.resolve(rootPathRaw);
+  console.log(`[INDEXING] Indexing folder: ${rootName}, raw path: ${rootPathRaw}, normalized: ${rootPath}`);
+  try {
+    fs.accessSync(rootPath);
+    console.log(`[INDEXING] Path exists: ${rootPath}`);
+  } catch (error) {
+    console.error(`[INDEXING] Path does not exist: ${rootPath}, error: ${error.message}`);
+    counters.errors++;
+    return;
+  }
+  console.log(`[INDEXING] Starting walk for: ${rootPath}`);
   await walkDirectory(rootPath, rootPath, rootId, rootName, runId, userId, counters);
 }
 
 async function walkDirectory(dirPath, rootPath, rootId, rootName, runId, userId, counters) {
+  dirPath = path.resolve(dirPath);
+  console.log(`[INDEXING] Enter walkDirectory for: ${dirPath}`);
   try {
-    const items = await fs.readdir(dirPath, { withFileTypes: true });
-    for (const item of items) {
-      const fullPath = path.join(dirPath, item.name);
+    console.log(`[INDEXING] Reading dir: ${dirPath}`);
+    const itemNames = fs.readdirSync(dirPath);
+    console.log(`[INDEXING] Items found: ${itemNames.length}`);
+    for (const itemName of itemNames) {
+      console.log(`[INDEXING] Processing item: ${itemName}`);
+      const fullPath = path.join(dirPath, itemName);
       counters.scanned++;
-      if (item.isDirectory()) {
-        await walkDirectory(fullPath, rootPath, rootId, rootName, runId, userId, counters);
-      } else if (item.isFile()) {
-        await indexFile(fullPath, rootPath, rootId, rootName, runId, userId, counters);
+      try {
+        const stats = fs.statSync(fullPath);
+        if (stats.isDirectory()) {
+          console.log(`[INDEXING] Descending into subdirectory: ${fullPath}`);
+          await walkDirectory(fullPath, rootPath, rootId, rootName, runId, userId, counters);
+        } else if (stats.isFile()) {
+          console.log(`[INDEXING] File found: ${fullPath}`);
+          await indexFile(fullPath, rootPath, rootId, rootName, runId, userId, counters);
+        } else {
+          console.log(`[INDEXING] Skipping non-file/dir: ${fullPath}`);
+        }
+      } catch (statError) {
+        console.error(`Error stating ${fullPath}:`, statError);
+        counters.errors++;
       }
     }
+    console.log(`[INDEXING] Exit walkDirectory for: ${dirPath}, scanned so far: ${counters.scanned}`);
   } catch (error) {
     console.error(`Error reading dir ${dirPath}:`, error);
     counters.errors++;
@@ -66,8 +103,9 @@ async function walkDirectory(dirPath, rootPath, rootId, rootName, runId, userId,
 }
 
 async function indexFile(filePath, rootPath, rootId, rootName, runId, userId, counters) {
+  console.log(`[INDEXING] indexFile called for: ${filePath}`);
   try {
-    const stats = await fs.stat(filePath);
+    const stats = fs.statSync(filePath);
     const hash = await calculateFileHash(filePath);
     const relativePath = path.relative(rootPath, filePath);
     const ext = path.extname(filePath).toLowerCase();
@@ -87,38 +125,59 @@ async function indexFile(filePath, rootPath, rootId, rootName, runId, userId, co
       // Verificar si cambió
       if (existing.file_modified_at !== stats.mtime.toISOString()) {
         // Actualizar
-        db.run(
+        await new Promise((resolve, reject) => {
+          db.run(
           'UPDATE documents SET file_modified_at = ?, updated_at = ?, updated_by = ? WHERE id = ?',
           [stats.mtime.toISOString(), updatedAt, userId, existing.id],
           (err) => {
-            if (err) console.error('Update error:', err);
-            else counters.updated++;
+            if (err) {
+              console.error('Update error:', err);
+              reject(err);
+            } else {
+              counters.updated++;
+              console.log(`[INDEXING] Updated file: ${filePath}`);
+              resolve();
+            }
           }
-        );
+          );
+        });
+      } else {
+        console.log(`[INDEXING] File unchanged: ${filePath}`);
       }
     } else {
       // Insertar nuevo
-      db.run(`
-        INSERT INTO documents (
-          original_name, absolute_path, relative_path, root_folder_id, root_folder_name,
-          file_extension, file_size, file_hash, file_modified_at, status, created_by, updated_by, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        path.basename(filePath), filePath, relativePath, rootId, rootName, ext, stats.size, hash,
-        stats.mtime.toISOString(), 'active', userId, userId, createdAt, updatedAt
-      ], function(err) {
-        if (err) {
-          console.error('Insert error:', err);
-          counters.errors++;
-        } else {
-          counters.indexed++;
-          // History
-          db.run(
-            'INSERT INTO document_history (document_id, action, performed_by, performed_at) VALUES (?, ?, ?, ?)',
-            [this.lastID, 'indexed', userId, createdAt],
-            (err2) => err2 && console.error('History error:', err2)
-          );
-        }
+      console.log(`[INDEXING] Inserting new file: ${filePath}`);
+      const documentId = await new Promise((resolve, reject) => {
+        db.run(`
+          INSERT INTO documents (
+            original_name, absolute_path, relative_path, root_folder_id, root_folder_name,
+            file_extension, file_size, file_hash, file_modified_at, status, created_by, updated_by, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          path.basename(filePath), filePath, relativePath, rootId, rootName, ext, stats.size, hash,
+          stats.mtime.toISOString(), 'active', userId, userId, createdAt, updatedAt
+        ], function(err) {
+          if (err) {
+            console.error('Insert error:', err);
+            reject(err);
+          } else {
+            resolve(this.lastID);
+          }
+        });
+      });
+
+      counters.indexed++;
+      console.log(`[INDEXING] Indexed file: ${filePath}, id: ${documentId}, indexed so far: ${counters.indexed}`);
+
+      await new Promise((resolve) => {
+        db.run(
+          'INSERT INTO document_history (document_id, action, performed_by, performed_at) VALUES (?, ?, ?, ?)',
+          [documentId, 'indexed', userId, createdAt],
+          (err2) => {
+            if (err2) console.error('History error:', err2);
+            resolve();
+          }
+        );
       });
     }
   } catch (error) {
