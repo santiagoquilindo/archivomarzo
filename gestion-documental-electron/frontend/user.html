@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Panel Usuario</title>
+  <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+  <div class="container">
+    <h1>Panel Usuario</h1>
+    <div class="card">
+      <p>Bienvenido, <strong id="userName"></strong> (user)</p>
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+    <!-- Documentos -->
+    <div class="card">
+      <h2>Documentos</h2>
+      <div class="filters">
+        <input type="text" id="filterName" placeholder="Buscar por nombre" />
+        <input type="text" id="filterVoucher" placeholder="Número comprobante" />
+        <select id="filterRootFolder">
+          <option value="">Todas las carpetas</option>
+        </select>
+        <button id="searchBtn">Buscar</button>
+      </div>
+      <ul id="documentsList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+      window.location.href = 'index.html';
+    });
+
+    async function loadUser() {
+      const res = await fetch(`${API_BASE}/api/protected/me`, { credentials: 'include' });
+      if (res.status === 200) {
+        const body = await res.json();
+        if (body.user?.role !== 'user') {
+          window.location.href = 'admin.html';
+          return;
+        }
+        document.getElementById('userName').innerText = body.user?.name || 'Usuario';
+        loadDocuments();
+        loadRootFoldersForSelect();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    async function loadDocuments() {
+      const res = await fetch(`${API_BASE}/api/documents`, { credentials: 'include' });
+      const docs = await res.json();
+      const list = document.getElementById('documentsList');
+      list.innerHTML = '';
+      docs.forEach(d => {
+        const li = document.createElement('li');
+        li.innerHTML = `${d.original_name} - ${d.voucher_number || 'Sin voucher'} 
+          <button onclick="viewDetail(${d.id})">Ver Detalle</button>
+          <button onclick="openDoc(${d.id})">Abrir</button>
+          <button onclick="viewHistory(${d.id})">Ver Historial</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', async () => {
+      const name = document.getElementById('filterName').value;
+      const voucher = document.getElementById('filterVoucher').value;
+      const rootFolderId = document.getElementById('filterRootFolder').value;
+      const params = new URLSearchParams({ name, voucher, rootFolderId });
+      const res = await fetch(`/api/documents?${params}`, { credentials: 'include' });
+      const docs = await res.json();
+      const list = document.getElementById('documentsList');
+      list.innerHTML = '';
+      docs.forEach(d => {
+        const li = document.createElement('li');
+        li.innerHTML = `${d.original_name} - ${d.voucher_number || 'Sin voucher'} 
+          <button onclick="viewDetail(${d.id})">Ver Detalle</button>
+          <button onclick="openDoc(${d.id})">Abrir</button>
+          <button onclick="viewHistory(${d.id})">Ver Historial</button>`;
+        list.appendChild(li);
+      });
+    });
+
+    async function loadRootFoldersForSelect() {
+      const res = await fetch(`${API_BASE}/api/root-folders`, { credentials: 'include' });
+      const folders = await res.json();
+      const select = document.getElementById('filterRootFolder');
+      select.innerHTML = '<option value="">Todas las carpetas</option>';
+      folders.forEach(f => {
+        select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+      });
+    }
+
+    async function viewDetail(id) {
+      const res = await fetch(`${API_BASE}/api/documents/${id}`, { credentials: 'include' });
+      const doc = await res.json();
+      alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
+    }
+
+    async function openDoc(id) {
+      const res = await fetch(`/api/documents/${id}/open`, { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      if (res.ok) {
+        window.open('file://' + data.path);
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function viewHistory(id) {
+      const res = await fetch(`/api/documents/${id}/history`, { credentials: 'include' });
+      const history = await res.json();
+      alert(`Historial: ${JSON.stringify(history, null, 2)}`);
+    }
+
+    loadUser();
+  </script>
+</body>
+</html>

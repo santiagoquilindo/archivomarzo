@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+*.sqlite
+*.db
+.DS_Store
+npm-debug.log*
+
+# Datos de usuario de Electron
+electron-user-data/
