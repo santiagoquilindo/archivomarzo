@@ -87,7 +87,7 @@ function createDocument(docData, userId) {
         docData.originalName, docData.storedName, docData.absolutePath, docData.relativePath,
         docData.rootFolderId, docData.rootFolderName, docData.fileExtension, stats.size, hash,
         stats.mtime.toISOString(), docData.documentDate, docData.voucherNumber, docData.category,
-        docData.documentType, docData.notes, docData.sourceArea, 'active', userId, userId, createdAt, updatedAt
+        docData.documentType, docData.notes, docData.sourceArea, 'pending', userId, userId, createdAt, updatedAt
       ], function(err) {
         if (err) return reject(err);
         const docId = this.lastID;
@@ -145,7 +145,7 @@ function getDocumentHistory(documentId) {
 function markDocumentMissing(id, userId) {
   return new Promise((resolve, reject) => {
     const performedAt = new Date().toISOString();
-    db.run('UPDATE documents SET status = ? WHERE id = ?', ['missing', id], function(err) {
+    db.run('UPDATE documents SET status = ?, updated_at = ?, updated_by = ? WHERE id = ?', ['missing', performedAt, userId, id], function(err) {
       if (err) return reject(err);
       db.run(
         'INSERT INTO document_history (document_id, action, performed_by, performed_at) VALUES (?, ?, ?, ?)',

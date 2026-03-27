@@ -56,13 +56,35 @@ function initDatabase() {
         document_type TEXT,
         notes TEXT,
         source_area TEXT,
-        status TEXT NOT NULL DEFAULT 'active',
+        status TEXT NOT NULL DEFAULT 'pending',
         created_by INTEGER,
         updated_by INTEGER,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (root_folder_id) REFERENCES root_folders (id)
       );
+    `);
+
+    db.run(`
+      CREATE INDEX IF NOT EXISTS idx_documents_root_path
+      ON documents (root_folder_id, absolute_path);
+    `);
+
+    db.run(`
+      CREATE INDEX IF NOT EXISTS idx_documents_status
+      ON documents (status);
+    `);
+
+    db.run(`
+      UPDATE documents
+      SET status = 'available'
+      WHERE status = 'active'
+    `);
+
+    db.run(`
+      UPDATE documents
+      SET status = 'pending'
+      WHERE status IS NULL OR TRIM(status) = ''
     `);
 
     db.run(`

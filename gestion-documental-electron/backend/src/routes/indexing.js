@@ -1,15 +1,21 @@
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { runIndexing, getIndexingRuns } = require('../services/indexingService');
+const { startIndexing, getIndexingRuns } = require('../services/indexingService');
 
 const router = express.Router();
 
 router.post('/run', verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    // Ejecutar indexación en background
-    runIndexing(req.user.id).catch(err => console.error('Background indexing error:', err));
-    res.json({ message: 'Indexación iniciada en segundo plano' });
+    const runId = await startIndexing(req.user.id);
+    res.json({
+      message: 'Indexación iniciada en segundo plano',
+      runId
+    });
   } catch (error) {
+    if (error.code === 'INDEXING_ALREADY_RUNNING') {
+      return res.status(409).json({ message: 'Ya existe una indexación en ejecución' });
+    }
+
     console.error('Start indexing error:', error);
     res.status(500).json({ message: 'Error iniciando indexación' });
   }
