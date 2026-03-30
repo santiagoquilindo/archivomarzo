@@ -6,7 +6,9 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #eef2f7;
+  background:
+    radial-gradient(circle at top, rgba(31, 162, 55, 0.12), transparent 28%),
+    linear-gradient(180deg, #f6fbf7 0%, #eef2f7 100%);
   color: #1f2937;
 }
 
@@ -22,6 +24,50 @@ body {
   padding: 20px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
   border: 1px solid #dbe2eb;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.brand-logo {
+  width: min(280px, 100%);
+  height: auto;
+  display: block;
+}
+
+.brand-title {
+  margin: 0;
+  text-align: center;
+  color: #146c2e;
+  letter-spacing: 0.02em;
+}
+
+.page-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.page-header .brand {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.page-header .brand-logo {
+  width: min(240px, 100%);
+}
+
+.page-header .brand-title {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 0;
 }
 
 h1 {
@@ -81,6 +127,22 @@ button:hover {
   border-radius: 5px;
 }
 
+textarea,
+select,
+input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 14px;
+  background: #fff;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
 .modal {
   position: fixed;
   z-index: 1;
@@ -113,4 +175,20 @@ button:hover {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .page-header {
+    justify-content: center;
+  }
+
+  .page-header .brand {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page-header .brand-title {
+    text-align: center;
+    font-size: 24px;
+  }
 }

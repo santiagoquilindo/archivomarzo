@@ -1,196 +1,245 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Usuario</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .container {
-      max-width: 1000px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Usuario</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .container {
+        max-width: 1000px;
+      }
 
-    .documents-table-wrapper {
-      overflow-x: auto;
-      margin-top: 12px;
-    }
+      .documents-table-wrapper {
+        overflow-x: auto;
+        margin-top: 12px;
+      }
 
-    .documents-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
+      .documents-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
 
-    .documents-table th,
-    .documents-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      vertical-align: middle;
-    }
+      .documents-table th,
+      .documents-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        vertical-align: middle;
+      }
 
-    .documents-table th {
-      color: #374151;
-      background: #f9fafb;
-      font-weight: 600;
-    }
+      .documents-table th {
+        color: #374151;
+        background: #f9fafb;
+        font-weight: 600;
+      }
 
-    .documents-table td:last-child {
-      min-width: 220px;
-    }
+      .documents-table td:last-child {
+        min-width: 220px;
+      }
 
-    .documents-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+      .documents-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
 
-    .documents-actions button {
-      width: auto;
-      padding: 8px 12px;
-      font-size: 13px;
-    }
+      .documents-actions button {
+        width: auto;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 12px;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Panel Usuario</h1>
-    <div class="card">
-      <p>Bienvenido, <strong id="userName"></strong> (user)</p>
-      <button id="logoutBtn">Cerrar sesión</button>
-    </div>
-
-    <div class="card">
-      <h2>Documentos</h2>
-      <div class="filters">
-        <input type="text" id="filterName" placeholder="Buscar por nombre" />
-        <input type="text" id="filterVoucher" placeholder="Número comprobante" />
-        <select id="filterRootFolder">
-          <option value="">Todas las carpetas</option>
-        </select>
-        <select id="filterStatus">
-          <option value="">Todos los estados</option>
-          <option value="available">Disponible</option>
-          <option value="updated">Actualizado</option>
-          <option value="missing">Missing</option>
-          <option value="pending">Pendiente</option>
-          <option value="error">Error</option>
-        </select>
-        <button id="searchBtn">Buscar</button>
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 12px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <div class="brand">
+          <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
+          <h1 class="brand-title">Panel Usuario</h1>
+        </div>
       </div>
-      <p id="documentsHint" style="margin-top: 12px; color: #6b7280;">Los documentos aparecerán cuando pulses "Buscar".</p>
-      <div id="documentsList"></div>
+      <div class="card">
+        <p>Bienvenido, <strong id="userName"></strong> (user)</p>
+        <button id="logoutBtn">Cerrar sesión</button>
+      </div>
+
+      <div class="card">
+        <h2>Documentos</h2>
+        <div class="filters">
+          <input type="text" id="filterName" placeholder="Buscar por nombre" />
+          <input
+            type="text"
+            id="filterVoucher"
+            placeholder="Número comprobante"
+          />
+          <select id="filterRootFolder">
+            <option value="">Todas las carpetas</option>
+          </select>
+          <select id="filterStatus">
+            <option value="">Todos los estados</option>
+            <option value="available">Disponible</option>
+            <option value="updated">Actualizado</option>
+            <option value="missing">Missing</option>
+            <option value="pending">Pendiente</option>
+            <option value="error">Error</option>
+          </select>
+          <button id="searchBtn">Buscar</button>
+        </div>
+        <p id="documentsHint" style="margin-top: 12px; color: #6b7280">
+          Los documentos aparecerán cuando pulses "Buscar".
+        </p>
+        <div id="documentsList"></div>
+      </div>
     </div>
-  </div>
 
-  <script>
-    const API_BASE = 'http://localhost:3000';
-    const DOCUMENT_STATUS = {
-      available: { label: 'Disponible', background: '#dcfce7', color: '#166534', border: '#86efac' },
-      updated: { label: 'Actualizado', background: '#fef3c7', color: '#92400e', border: '#fcd34d' },
-      missing: { label: 'Missing', background: '#fee2e2', color: '#b91c1c', border: '#fca5a5' },
-      pending: { label: 'Pendiente', background: '#e5e7eb', color: '#4b5563', border: '#d1d5db' },
-      error: { label: 'Error', background: '#ffedd5', color: '#c2410c', border: '#fdba74' }
-    };
+    <script>
+      const API_BASE = "http://localhost:3000";
+      const DOCUMENT_STATUS = {
+        available: {
+          label: "Disponible",
+          background: "#dcfce7",
+          color: "#166534",
+          border: "#86efac",
+        },
+        updated: {
+          label: "Actualizado",
+          background: "#fef3c7",
+          color: "#92400e",
+          border: "#fcd34d",
+        },
+        missing: {
+          label: "Missing",
+          background: "#fee2e2",
+          color: "#b91c1c",
+          border: "#fca5a5",
+        },
+        pending: {
+          label: "Pendiente",
+          background: "#e5e7eb",
+          color: "#4b5563",
+          border: "#d1d5db",
+        },
+        error: {
+          label: "Error",
+          background: "#ffedd5",
+          color: "#c2410c",
+          border: "#fdba74",
+        },
+      };
 
-    window.addEventListener('DOMContentLoaded', setup);
+      window.addEventListener("DOMContentLoaded", setup);
 
-    async function setup() {
-      document.getElementById('logoutBtn').addEventListener('click', logout);
-      document.getElementById('searchBtn').addEventListener('click', handleDocumentSearch);
-      clearDocumentsList();
-      await loadUser();
-    }
-
-    async function logout() {
-      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-      window.location.href = 'index.html';
-    }
-
-    async function loadUser() {
-      const res = await fetch(`${API_BASE}/api/protected/me`, { credentials: 'include' });
-
-      if (res.status !== 200) {
-        window.location.href = 'index.html';
-        return;
+      async function setup() {
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document
+          .getElementById("searchBtn")
+          .addEventListener("click", handleDocumentSearch);
+        clearDocumentsList();
+        await loadUser();
       }
 
-      const body = await res.json();
-      if (body.user?.role !== 'user') {
-        window.location.href = 'admin.html';
-        return;
+      async function logout() {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        });
+        window.location.href = "index.html";
       }
 
-      document.getElementById('userName').innerText = body.user?.name || 'Usuario';
-      await loadRootFoldersForSelect();
-    }
+      async function loadUser() {
+        const res = await fetch(`${API_BASE}/api/protected/me`, {
+          credentials: "include",
+        });
 
-    async function handleDocumentSearch() {
-      await searchDocuments();
-    }
+        if (res.status !== 200) {
+          window.location.href = "index.html";
+          return;
+        }
 
-    async function searchDocuments() {
-      const name = document.getElementById('filterName').value.trim();
-      const voucher = document.getElementById('filterVoucher').value.trim();
-      const rootFolderId = document.getElementById('filterRootFolder').value;
-      const status = document.getElementById('filterStatus').value;
-      const params = new URLSearchParams();
+        const body = await res.json();
+        if (body.user?.role !== "user") {
+          window.location.href = "admin.html";
+          return;
+        }
 
-      if (name) params.set('name', name);
-      if (voucher) params.set('voucher', voucher);
-      if (rootFolderId) params.set('rootFolderId', rootFolderId);
-      if (status) params.set('status', status);
-
-      const query = params.toString();
-      const url = query ? `${API_BASE}/api/documents?${query}` : `${API_BASE}/api/documents`;
-      const res = await fetch(url, { credentials: 'include' });
-      const docs = await res.json();
-
-      renderDocuments(Array.isArray(docs) ? docs : []);
-    }
-
-    function clearDocumentsList() {
-      document.getElementById('documentsList').innerHTML = '';
-      document.getElementById('documentsHint').textContent = 'Los documentos aparecerán cuando pulses "Buscar".';
-    }
-
-    function normalizeDocumentStatus(status) {
-      return status === 'active' ? 'available' : (status || 'pending');
-    }
-
-    function getStatusBadge(status) {
-      const normalizedStatus = normalizeDocumentStatus(status);
-      const meta = DOCUMENT_STATUS[normalizedStatus] || DOCUMENT_STATUS.pending;
-      return `<span class="status-badge" style="background:${meta.background};color:${meta.color};border-color:${meta.border};">${meta.label}</span>`;
-    }
-
-    function renderDocuments(docs) {
-      const list = document.getElementById('documentsList');
-      const hint = document.getElementById('documentsHint');
-
-      list.innerHTML = '';
-
-      if (!docs.length) {
-        hint.textContent = 'No se encontraron documentos para los criterios ingresados.';
-        return;
+        document.getElementById("userName").innerText =
+          body.user?.name || "Usuario";
+        await loadRootFoldersForSelect();
       }
 
-      hint.textContent = `Resultados: ${docs.length}`;
-      const table = document.createElement('div');
-      table.className = 'documents-table-wrapper';
-      table.innerHTML = `
+      async function handleDocumentSearch() {
+        await searchDocuments();
+      }
+
+      async function searchDocuments() {
+        const name = document.getElementById("filterName").value.trim();
+        const voucher = document.getElementById("filterVoucher").value.trim();
+        const rootFolderId = document.getElementById("filterRootFolder").value;
+        const status = document.getElementById("filterStatus").value;
+        const params = new URLSearchParams();
+
+        if (name) params.set("name", name);
+        if (voucher) params.set("voucher", voucher);
+        if (rootFolderId) params.set("rootFolderId", rootFolderId);
+        if (status) params.set("status", status);
+
+        const query = params.toString();
+        const url = query
+          ? `${API_BASE}/api/documents?${query}`
+          : `${API_BASE}/api/documents`;
+        const res = await fetch(url, { credentials: "include" });
+        const docs = await res.json();
+
+        renderDocuments(Array.isArray(docs) ? docs : []);
+      }
+
+      function clearDocumentsList() {
+        document.getElementById("documentsList").innerHTML = "";
+        document.getElementById("documentsHint").textContent =
+          'Los documentos aparecerán cuando pulses "Buscar".';
+      }
+
+      function normalizeDocumentStatus(status) {
+        return status === "active" ? "available" : status || "pending";
+      }
+
+      function getStatusBadge(status) {
+        const normalizedStatus = normalizeDocumentStatus(status);
+        const meta =
+          DOCUMENT_STATUS[normalizedStatus] || DOCUMENT_STATUS.pending;
+        return `<span class="status-badge" style="background:${meta.background};color:${meta.color};border-color:${meta.border};">${meta.label}</span>`;
+      }
+
+      function renderDocuments(docs) {
+        const list = document.getElementById("documentsList");
+        const hint = document.getElementById("documentsHint");
+
+        list.innerHTML = "";
+
+        if (!docs.length) {
+          hint.textContent =
+            "No se encontraron documentos para los criterios ingresados.";
+          return;
+        }
+
+        hint.textContent = `Resultados: ${docs.length}`;
+        const table = document.createElement("div");
+        table.className = "documents-table-wrapper";
+        table.innerHTML = `
         <table class="documents-table">
           <thead>
             <tr>
@@ -201,10 +250,12 @@
             </tr>
           </thead>
           <tbody>
-            ${docs.map((doc) => `
+            ${docs
+              .map(
+                (doc) => `
               <tr>
-                <td>${escapeHtml(doc.original_name || '')}</td>
-                <td>${escapeHtml(doc.voucher_number || 'Sin voucher')}</td>
+                <td>${escapeHtml(doc.original_name || "")}</td>
+                <td>${escapeHtml(doc.voucher_number || "Sin voucher")}</td>
                 <td>${getStatusBadge(doc.status)}</td>
                 <td>
                   <div class="documents-actions">
@@ -214,65 +265,76 @@
                   </div>
                 </td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       `;
 
-      list.appendChild(table);
-    }
+        list.appendChild(table);
+      }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
 
-    async function loadRootFoldersForSelect() {
-      const select = document.getElementById('filterRootFolder');
-      select.innerHTML = '<option value="">Todas las carpetas</option>';
+      async function loadRootFoldersForSelect() {
+        const select = document.getElementById("filterRootFolder");
+        select.innerHTML = '<option value="">Todas las carpetas</option>';
 
-      try {
-        const res = await fetch(`${API_BASE}/api/root-folders`, { credentials: 'include' });
-        if (!res.ok) {
-          return;
+        try {
+          const res = await fetch(`${API_BASE}/api/root-folders`, {
+            credentials: "include",
+          });
+          if (!res.ok) {
+            return;
+          }
+
+          const folders = await res.json();
+          folders.forEach((folder) => {
+            select.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
+          });
+        } catch (error) {
+          console.error(
+            "No se pudieron cargar carpetas raíz para el usuario:",
+            error,
+          );
         }
+      }
 
-        const folders = await res.json();
-        folders.forEach((folder) => {
-          select.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
+      async function viewDetail(id) {
+        const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+          credentials: "include",
         });
-      } catch (error) {
-        console.error('No se pudieron cargar carpetas raíz para el usuario:', error);
+        const doc = await res.json();
+        alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
       }
-    }
 
-    async function viewDetail(id) {
-      const res = await fetch(`${API_BASE}/api/documents/${id}`, { credentials: 'include' });
-      const doc = await res.json();
-      alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
-    }
+      async function openDoc(id) {
+        const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const data = await res.json();
 
-    async function openDoc(id) {
-      const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        alert(data.message || 'No se pudo abrir el archivo');
+        if (!res.ok || !data.success) {
+          alert(data.message || "No se pudo abrir el archivo");
+        }
       }
-    }
 
-    async function viewHistory(id) {
-      const res = await fetch(`${API_BASE}/api/documents/${id}/history`, { credentials: 'include' });
-      const history = await res.json();
-      alert(`Historial: ${JSON.stringify(history, null, 2)}`);
-    }
-  </script>
-</body>
+      async function viewHistory(id) {
+        const res = await fetch(`${API_BASE}/api/documents/${id}/history`, {
+          credentials: "include",
+        });
+        const history = await res.json();
+        alert(`Historial: ${JSON.stringify(history, null, 2)}`);
+      }
+    </script>
+  </body>
 </html>
