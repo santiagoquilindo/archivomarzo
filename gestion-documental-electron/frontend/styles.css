@@ -12,6 +12,14 @@ body {
   color: #1f2937;
 }
 
+:root {
+  --sag-green: #1fa237;
+  --sag-green-dark: #16822c;
+  --sag-green-soft: #ecfdf3;
+  --sag-green-border: #86efac;
+  --sag-green-text: #146c2e;
+}
+
 .container {
   max-width: 420px;
   margin: 80px auto;
@@ -43,7 +51,7 @@ body {
 .brand-title {
   margin: 0;
   text-align: center;
-  color: #146c2e;
+  color: var(--sag-green-text);
   letter-spacing: 0.02em;
 }
 
@@ -99,13 +107,13 @@ button {
   font-size: 16px;
   border: none;
   border-radius: 8px;
-  background-color: #1f7ed2;
+  background-color: var(--sag-green);
   color: white;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #1565c0;
+  background-color: var(--sag-green-dark);
 }
 
 .message {
@@ -136,6 +144,16 @@ input[type="date"] {
   border-radius: 7px;
   font-size: 14px;
   background: #fff;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--sag-green);
+  box-shadow: 0 0 0 3px rgba(31, 162, 55, 0.16);
 }
 
 textarea {
