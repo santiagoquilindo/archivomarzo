@@ -69,13 +69,90 @@ function getDocumentById(id) {
   });
 }
 
+function getRootFolderById(id) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM root_folders WHERE id = ?', [id], (err, row) => {
+      if (err) return reject(err);
+      resolve(row);
+    });
+  });
+}
+
+function normalizeRelativePath(relativePath, fallbackFileName) {
+  const cleaned = String(relativePath || '')
+    .trim()
+    .replace(/[\\/]+/g, path.sep)
+    .replace(new RegExp(`^[${path.sep === '\\' ? '\\\\' : path.sep}]+`), '');
+
+  return cleaned || fallbackFileName;
+}
+
+function ensurePathInsideRoot(rootPath, targetPath) {
+  const resolvedRoot = path.resolve(rootPath);
+  const resolvedTarget = path.resolve(targetPath);
+
+  if (resolvedTarget === resolvedRoot) {
+    return resolvedTarget;
+  }
+
+  if (!resolvedTarget.startsWith(`${resolvedRoot}${path.sep}`)) {
+    throw new Error('La ruta relativa queda por fuera de la carpeta raíz seleccionada');
+  }
+
+  return resolvedTarget;
+}
+
+async function getAvailableDestinationPath(destinationPath) {
+  const parsed = path.parse(destinationPath);
+  let attempt = 0;
+  let candidatePath = destinationPath;
+
+  while (true) {
+    try {
+      await fs.access(candidatePath);
+      attempt += 1;
+      candidatePath = path.join(parsed.dir, `${parsed.name}-${attempt}${parsed.ext}`);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return candidatePath;
+      }
+
+      throw error;
+    }
+  }
+}
+
 function createDocument(docData, userId) {
   return new Promise(async (resolve, reject) => {
     try {
-      const hash = await calculateFileHash(docData.absolutePath);
-      const stats = await fs.stat(docData.absolutePath);
+      const sourcePath = path.resolve(docData.absolutePath);
+      const sourceStats = await fs.stat(sourcePath);
+      const sourceFileName = path.basename(sourcePath);
+      const rootFolder = await getRootFolderById(docData.rootFolderId);
+
+      if (!rootFolder) {
+        throw new Error('La carpeta raíz seleccionada no existe');
+      }
+
+      const rootFolderPath = path.resolve(rootFolder.absolute_path);
+      const desiredRelativePath = normalizeRelativePath(docData.relativePath, sourceFileName);
+      const requestedDestination = ensurePathInsideRoot(
+        rootFolderPath,
+        path.resolve(rootFolderPath, desiredRelativePath)
+      );
+      const finalDestinationPath = await getAvailableDestinationPath(requestedDestination);
+      const finalRelativePath = path.relative(rootFolderPath, finalDestinationPath);
+
+      await fs.mkdir(path.dirname(finalDestinationPath), { recursive: true });
+      await fs.copyFile(sourcePath, finalDestinationPath);
+
+      const hash = await calculateFileHash(finalDestinationPath);
+      const stats = await fs.stat(finalDestinationPath);
       const createdAt = new Date().toISOString();
       const updatedAt = createdAt;
+      const fileExtension = docData.fileExtension || path.extname(finalDestinationPath).toLowerCase();
+      const storedName = path.basename(finalDestinationPath);
+      const rootFolderName = rootFolder.name;
 
       db.run(`
         INSERT INTO documents (
@@ -84,8 +161,8 @@ function createDocument(docData, userId) {
           category, document_type, notes, source_area, status, created_by, updated_by, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
-        docData.originalName, docData.storedName, docData.absolutePath, docData.relativePath,
-        docData.rootFolderId, docData.rootFolderName, docData.fileExtension, stats.size, hash,
+        docData.originalName, storedName, finalDestinationPath, finalRelativePath,
+        rootFolder.id, rootFolderName, fileExtension, stats.size, hash,
         stats.mtime.toISOString(), docData.documentDate, docData.voucherNumber, docData.category,
         docData.documentType, docData.notes, docData.sourceArea, 'pending', userId, userId, createdAt, updatedAt
       ], function(err) {
@@ -97,7 +174,12 @@ function createDocument(docData, userId) {
           [docId, 'created', userId, createdAt],
           (err2) => {
             if (err2) console.error('Error history:', err2);
-            resolve({ id: docId });
+            resolve({
+              id: docId,
+              absolutePath: finalDestinationPath,
+              relativePath: finalRelativePath,
+              copiedFrom: sourcePath
+            });
           }
         );
       });
