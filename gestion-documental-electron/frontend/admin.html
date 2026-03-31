@@ -185,6 +185,7 @@
           <textarea id="docNotes" placeholder="Notas"></textarea>
           <input type="text" id="docSourceArea" placeholder="Área de origen" />
           <button type="submit">Crear Documento</button>
+          <p id="createDocMessage" class="form-feedback" aria-live="polite"></p>
         </form>
       </div>
 
@@ -631,6 +632,16 @@
           .replace(/'/g, "&#39;");
       }
 
+      function setCreateDocumentMessage(message, type = "") {
+        const messageElement = document.getElementById("createDocMessage");
+        messageElement.textContent = message;
+        messageElement.className = "form-feedback";
+
+        if (type) {
+          messageElement.classList.add(`is-${type}`);
+        }
+      }
+
       function handleDocumentFileSelection(event) {
         const selectedFile = event.target.files?.[0];
         const pathInput = document.getElementById("docPath");
@@ -689,6 +700,7 @@
 
       async function handleCreateDocument(event) {
         event.preventDefault();
+        setCreateDocumentMessage("");
 
         const rootFolderSelect = document.getElementById("docRootFolder");
         const selectedFile = document.getElementById("docFile").files?.[0];
@@ -715,12 +727,27 @@
           sourceArea: document.getElementById("docSourceArea").value,
         };
 
-        await fetch(`${API_BASE}/api/documents`, {
+        const response = await fetch(`${API_BASE}/api/documents`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify(data),
         });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setCreateDocumentMessage(
+            result.message || "No se pudo crear el documento.",
+            "error",
+          );
+          return;
+        }
+
+        setCreateDocumentMessage(
+          "Archivo subido y documento creado exitosamente.",
+          "success",
+        );
 
         event.target.reset();
 

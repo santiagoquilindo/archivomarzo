@@ -122,6 +122,27 @@ button:hover {
   min-height: 1.5em;
 }
 
+.form-feedback {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  min-height: 20px;
+  font-size: 14px;
+}
+
+.form-feedback.is-success {
+  background: var(--sag-green-soft);
+  border-color: var(--sag-green-border);
+  color: var(--sag-green-text);
+}
+
+.form-feedback.is-error {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
 .filters {
   display: flex;
   gap: 10px;
