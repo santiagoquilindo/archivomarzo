@@ -164,10 +164,12 @@
             placeholder="Nombre visible"
             required
           />
+          <input type="file" id="docFile" />
           <input
             type="text"
             id="docPath"
             placeholder="Ruta del archivo local"
+            readonly
             required
           />
           <input
@@ -294,6 +296,9 @@
         document
           .getElementById("createDocForm")
           .addEventListener("submit", handleCreateDocument);
+        document
+          .getElementById("docFile")
+          .addEventListener("change", handleDocumentFileSelection);
         document
           .getElementById("closeEdit")
           .addEventListener("click", closeEditModal);
@@ -623,18 +628,43 @@
           .replace(/'/g, "&#39;");
       }
 
+      function handleDocumentFileSelection(event) {
+        const selectedFile = event.target.files?.[0];
+        const pathInput = document.getElementById("docPath");
+        const nameInput = document.getElementById("docName");
+
+        if (!selectedFile) {
+          pathInput.value = "";
+          return;
+        }
+
+        pathInput.value = selectedFile.path || "";
+
+        if (!nameInput.value.trim()) {
+          nameInput.value = selectedFile.name || "";
+        }
+      }
+
       async function handleCreateDocument(event) {
         event.preventDefault();
 
         const rootFolderSelect = document.getElementById("docRootFolder");
+        const selectedFile = document.getElementById("docFile").files?.[0];
+        const absolutePath =
+          selectedFile?.path || document.getElementById("docPath").value;
+        const originalName =
+          document.getElementById("docName").value || selectedFile?.name || "";
+        const fileExtension = selectedFile?.name?.includes(".")
+          ? `.${selectedFile.name.split(".").pop().toLowerCase()}`
+          : "";
         const data = {
-          originalName: document.getElementById("docName").value,
-          absolutePath: document.getElementById("docPath").value,
+          originalName,
+          absolutePath,
           relativePath: document.getElementById("docRelativePath").value,
           rootFolderId: rootFolderSelect.value,
           rootFolderName:
             rootFolderSelect.options[rootFolderSelect.selectedIndex].text,
-          fileExtension: ".pdf",
+          fileExtension,
           documentDate: document.getElementById("docDate").value,
           voucherNumber: document.getElementById("docVoucher").value,
           category: document.getElementById("docCategory").value,
