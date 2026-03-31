@@ -300,6 +300,9 @@
           .getElementById("docFile")
           .addEventListener("change", handleDocumentFileSelection);
         document
+          .getElementById("docRootFolder")
+          .addEventListener("change", syncRelativePathWithSelection);
+        document
           .getElementById("closeEdit")
           .addEventListener("click", closeEditModal);
         document
@@ -641,8 +644,47 @@
         pathInput.value = selectedFile.path || "";
 
         if (!nameInput.value.trim()) {
-          nameInput.value = selectedFile.name || "";
+          const fileName = selectedFile.name || "";
+          const lastDotIndex = fileName.lastIndexOf(".");
+          nameInput.value =
+            lastDotIndex > 0 ? fileName.slice(0, lastDotIndex) : fileName;
         }
+
+        syncRelativePathWithSelection();
+      }
+
+      function syncRelativePathWithSelection() {
+        const selectedFile = document.getElementById("docFile").files?.[0];
+        const relativePathInput = document.getElementById("docRelativePath");
+        const rootFolderSelect = document.getElementById("docRootFolder");
+
+        if (!selectedFile || !rootFolderSelect.value) {
+          return;
+        }
+
+        const selectedRootFolder = currentRootFolders.find(
+          (folder) => String(folder.id) === String(rootFolderSelect.value),
+        );
+
+        const absolutePath = selectedFile.path || "";
+        const rootAbsolutePath = selectedRootFolder?.absolute_path || "";
+
+        if (!absolutePath || !rootAbsolutePath) {
+          return;
+        }
+
+        const normalizePath = (value) =>
+          String(value).replace(/\//g, "\\").toLowerCase();
+
+        const normalizedAbsolutePath = normalizePath(absolutePath);
+        const normalizedRootPath = normalizePath(rootAbsolutePath);
+
+        if (normalizedAbsolutePath.startsWith(`${normalizedRootPath}\\`)) {
+          relativePathInput.value = absolutePath.slice(rootAbsolutePath.length + 1);
+          return;
+        }
+
+        relativePathInput.value = selectedFile.name || "";
       }
 
       async function handleCreateDocument(event) {
