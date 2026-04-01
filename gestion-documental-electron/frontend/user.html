@@ -74,7 +74,7 @@
       </div>
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (user)</p>
-        <button id="logoutBtn">Cerrar sesión</button>
+        <button id="logoutBtn">Cerrar sesion</button>
       </div>
 
       <div class="card">
@@ -84,7 +84,7 @@
           <input
             type="text"
             id="filterVoucher"
-            placeholder="Número comprobante"
+            placeholder="Numero comprobante"
           />
           <select id="filterRootFolder">
             <option value="">Todas las carpetas</option>
@@ -100,8 +100,9 @@
           <button id="searchBtn">Buscar</button>
         </div>
         <p id="documentsHint" style="margin-top: 12px; color: #146c2e">
-          Los documentos aparecerán cuando pulses "Buscar".
+          Los documentos apareceran cuando pulses "Buscar".
         </p>
+        <p id="userActionMessage" class="form-feedback" aria-live="polite"></p>
         <div id="documentsList"></div>
       </div>
     </div>
@@ -178,7 +179,6 @@
 
         document.getElementById("userName").innerText =
           body.user?.name || "Usuario";
-        await loadRootFoldersForSelect();
       }
 
       async function handleDocumentSearch() {
@@ -210,7 +210,7 @@
       function clearDocumentsList() {
         document.getElementById("documentsList").innerHTML = "";
         document.getElementById("documentsHint").textContent =
-          'Los documentos aparecerán cuando pulses "Buscar".';
+          'Los documentos apareceran cuando pulses "Buscar".';
       }
 
       function normalizeDocumentStatus(status) {
@@ -284,27 +284,13 @@
           .replace(/'/g, "&#39;");
       }
 
-      async function loadRootFoldersForSelect() {
-        const select = document.getElementById("filterRootFolder");
-        select.innerHTML = '<option value="">Todas las carpetas</option>';
+      function setUserActionMessage(message, type = "") {
+        const messageElement = document.getElementById("userActionMessage");
+        messageElement.textContent = message;
+        messageElement.className = "form-feedback";
 
-        try {
-          const res = await fetch(`${API_BASE}/api/root-folders`, {
-            credentials: "include",
-          });
-          if (!res.ok) {
-            return;
-          }
-
-          const folders = await res.json();
-          folders.forEach((folder) => {
-            select.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
-          });
-        } catch (error) {
-          console.error(
-            "No se pudieron cargar carpetas raíz para el usuario:",
-            error,
-          );
+        if (type) {
+          messageElement.classList.add(`is-${type}`);
         }
       }
 
@@ -317,6 +303,7 @@
       }
 
       async function openDoc(id) {
+        setUserActionMessage("");
         const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
           method: "POST",
           credentials: "include",
@@ -324,8 +311,14 @@
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          alert(data.message || "No se pudo abrir el archivo");
+          setUserActionMessage(
+            data.message || "No se pudo abrir el archivo.",
+            "error",
+          );
+          return;
         }
+
+        setUserActionMessage("Archivo abierto correctamente.", "success");
       }
 
       async function viewHistory(id) {

@@ -71,6 +71,7 @@
           <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
           <h1 class="brand-title">Panel Admin</h1>
         </div>
+        <p id="adminActionMessage" class="form-feedback" aria-live="polite"></p>
       </div>
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (admin)</p>
@@ -357,22 +358,34 @@
 
       async function handleRootFolderSubmit(event) {
         event.preventDefault();
+        setAdminActionMessage("");
         const name = document.getElementById("folderName").value;
         const absolutePath = document.getElementById("folderPath").value;
 
-        await fetch(`${API_BASE}/api/root-folders`, {
+        const response = await fetch(`${API_BASE}/api/root-folders`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ name, absolutePath }),
         });
 
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo agregar la carpeta raíz.",
+            "error",
+          );
+          return;
+        }
+
         event.target.reset();
         await loadRootFolders();
         await loadRootFoldersForSelect();
+        setAdminActionMessage("Carpeta raíz agregada exitosamente.", "success");
       }
 
       async function handleIndexingRun() {
+        setAdminActionMessage("");
         setIndexStatus("running");
 
         try {
@@ -387,9 +400,17 @@
           }
 
           startIndexStatusPolling();
+          setAdminActionMessage(
+            "La indexación se inició correctamente en segundo plano.",
+            "success",
+          );
         } catch (error) {
           console.error("Error starting indexing:", error);
           setIndexStatus("unavailable", error.message);
+          setAdminActionMessage(
+            error.message || "No se pudo iniciar la indexación.",
+            "error",
+          );
         }
       }
 
@@ -497,13 +518,14 @@
       }
 
       async function toggleFolder(id, active) {
+        setAdminActionMessage("");
         const folder = currentRootFolders.find((item) => item.id === id);
         if (!folder) {
           alert("No se pudo identificar la carpeta raíz.");
           return;
         }
 
-        await fetch(`${API_BASE}/api/root-folders/${id}`, {
+        const response = await fetch(`${API_BASE}/api/root-folders/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -514,18 +536,42 @@
           }),
         });
 
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo actualizar la carpeta raíz.",
+            "error",
+          );
+          return;
+        }
+
         await loadRootFolders();
         await loadRootFoldersForSelect();
+        setAdminActionMessage(
+          `Carpeta raíz ${active ? "activada" : "desactivada"} exitosamente.`,
+          "success",
+        );
       }
 
       async function deleteFolder(id) {
-        await fetch(`${API_BASE}/api/root-folders/${id}`, {
+        setAdminActionMessage("");
+        const response = await fetch(`${API_BASE}/api/root-folders/${id}`, {
           method: "DELETE",
           credentials: "include",
         });
 
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo eliminar la carpeta raíz.",
+            "error",
+          );
+          return;
+        }
+
         await loadRootFolders();
         await loadRootFoldersForSelect();
+        setAdminActionMessage("Carpeta raíz eliminada exitosamente.", "success");
       }
 
       async function handleDocumentSearch() {
@@ -634,6 +680,16 @@
 
       function setCreateDocumentMessage(message, type = "") {
         const messageElement = document.getElementById("createDocMessage");
+        messageElement.textContent = message;
+        messageElement.className = "form-feedback";
+
+        if (type) {
+          messageElement.classList.add(`is-${type}`);
+        }
+      }
+
+      function setAdminActionMessage(message, type = "") {
+        const messageElement = document.getElementById("adminActionMessage");
         messageElement.textContent = message;
         messageElement.className = "form-feedback";
 
@@ -783,6 +839,7 @@
 
       async function handleEditDocument(event) {
         event.preventDefault();
+        setAdminActionMessage("");
 
         const data = {
           document_date: document.getElementById("editDocDate").value,
@@ -793,14 +850,24 @@
           source_area: document.getElementById("editDocSourceArea").value,
         };
 
-        await fetch(`${API_BASE}/api/documents/${currentEditId}`, {
+        const response = await fetch(`${API_BASE}/api/documents/${currentEditId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify(data),
         });
 
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo actualizar el documento.",
+            "error",
+          );
+          return;
+        }
+
         closeEditModal();
+        setAdminActionMessage("Documento actualizado exitosamente.", "success");
 
         if (hasSearchedDocuments) {
           await searchDocuments();
@@ -816,6 +883,7 @@
       }
 
       async function openDoc(id) {
+        setAdminActionMessage("");
         const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
           method: "POST",
           credentials: "include",
@@ -823,8 +891,14 @@
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          alert(data.message || "No se pudo abrir el archivo");
+          setAdminActionMessage(
+            data.message || "No se pudo abrir el archivo.",
+            "error",
+          );
+          return;
         }
+
+        setAdminActionMessage("Archivo abierto correctamente.", "success");
       }
     </script>
   </body>
