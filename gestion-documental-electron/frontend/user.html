@@ -102,11 +102,11 @@
         <p id="documentsHint" style="margin-top: 12px; color: #146c2e">
           Los documentos apareceran cuando pulses "Buscar".
         </p>
-        <p id="userActionMessage" class="form-feedback" aria-live="polite"></p>
         <div id="documentsList"></div>
       </div>
     </div>
 
+    <script src="notifications.js"></script>
     <script>
       const API_BASE = "http://localhost:3000";
       const DOCUMENT_STATUS = {
@@ -285,13 +285,10 @@
       }
 
       function setUserActionMessage(message, type = "") {
-        const messageElement = document.getElementById("userActionMessage");
-        messageElement.textContent = message;
-        messageElement.className = "form-feedback";
-
-        if (type) {
-          messageElement.classList.add(`is-${type}`);
+        if (!message) {
+          return;
         }
+        window.appNotifier?.[type || "info"]?.(message);
       }
 
       async function viewDetail(id) {

@@ -71,7 +71,6 @@
           <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
           <h1 class="brand-title">Panel Admin</h1>
         </div>
-        <p id="adminActionMessage" class="form-feedback" aria-live="polite"></p>
       </div>
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (admin)</p>
@@ -88,9 +87,21 @@
             required
           />
           <input
+            type="file"
+            id="rootFolderPicker"
+            class="picker-input"
+            webkitdirectory
+            directory
+          />
+          <div class="picker-row">
+            <button type="button" id="pickRootFolderBtn">Explorar carpeta</button>
+            <span id="pickedRootFolderLabel" class="picker-label">Ninguna carpeta seleccionada</span>
+          </div>
+          <input
             type="text"
             id="folderPath"
             placeholder="Ruta absoluta (ej: D:\\doc marzo\\ARCHIVO)"
+            readonly
             required
           />
           <button type="submit">Agregar Carpeta</button>
@@ -165,7 +176,11 @@
             placeholder="Nombre visible"
             required
           />
-          <input type="file" id="docFile" />
+          <input type="file" id="docFile" class="picker-input" />
+          <div class="picker-row">
+            <button type="button" id="pickDocFileBtn">Explorar archivo</button>
+            <span id="pickedDocFileLabel" class="picker-label">Ningun archivo seleccionado</span>
+          </div>
           <input
             type="text"
             id="docPath"
@@ -186,7 +201,6 @@
           <textarea id="docNotes" placeholder="Notas"></textarea>
           <input type="text" id="docSourceArea" placeholder="Área de origen" />
           <button type="submit">Crear Documento</button>
-          <p id="createDocMessage" class="form-feedback" aria-live="polite"></p>
         </form>
       </div>
 
@@ -216,6 +230,7 @@
       </div>
     </div>
 
+    <script src="notifications.js"></script>
     <script>
       const API_BASE = "http://localhost:3000";
       const INDEX_STATUS = {
@@ -290,6 +305,12 @@
           .getElementById("rootFolderForm")
           .addEventListener("submit", handleRootFolderSubmit);
         document
+          .getElementById("pickRootFolderBtn")
+          .addEventListener("click", () => document.getElementById("rootFolderPicker").click());
+        document
+          .getElementById("rootFolderPicker")
+          .addEventListener("change", handleRootFolderSelection);
+        document
           .getElementById("indexBtn")
           .addEventListener("click", handleIndexingRun);
         document
@@ -298,6 +319,9 @@
         document
           .getElementById("createDocForm")
           .addEventListener("submit", handleCreateDocument);
+        document
+          .getElementById("pickDocFileBtn")
+          .addEventListener("click", () => document.getElementById("docFile").click());
         document
           .getElementById("docFile")
           .addEventListener("change", handleDocumentFileSelection);
@@ -382,6 +406,34 @@
         await loadRootFolders();
         await loadRootFoldersForSelect();
         setAdminActionMessage("Carpeta raíz agregada exitosamente.", "success");
+      }
+
+      function handleRootFolderSelection(event) {
+        const selectedFile = event.target.files?.[0];
+        const pathInput = document.getElementById("folderPath");
+        const nameInput = document.getElementById("folderName");
+        const label = document.getElementById("pickedRootFolderLabel");
+
+        if (!selectedFile) {
+          pathInput.value = "";
+          label.textContent = "Ninguna carpeta seleccionada";
+          return;
+        }
+
+        const absoluteFilePath = selectedFile.path || "";
+        const relativeFilePath = selectedFile.webkitRelativePath || selectedFile.name || "";
+        const normalizedRelativePath = relativeFilePath.replace(/\//g, "\\");
+        const folderPath = absoluteFilePath
+          ? absoluteFilePath.slice(0, absoluteFilePath.length - normalizedRelativePath.length).replace(/[\\\/]$/, "")
+          : "";
+        const folderName = relativeFilePath.split("/")[0] || "";
+
+        pathInput.value = folderPath;
+        label.textContent = folderPath || "Carpeta seleccionada";
+
+        if (!nameInput.value.trim()) {
+          nameInput.value = folderName || folderPath.split(/[/\\]/).pop() || "";
+        }
       }
 
       async function handleIndexingRun() {
@@ -679,36 +731,33 @@
       }
 
       function setCreateDocumentMessage(message, type = "") {
-        const messageElement = document.getElementById("createDocMessage");
-        messageElement.textContent = message;
-        messageElement.className = "form-feedback";
-
-        if (type) {
-          messageElement.classList.add(`is-${type}`);
+        if (!message) {
+          return;
         }
+        window.appNotifier?.[type || "info"]?.(message);
       }
 
       function setAdminActionMessage(message, type = "") {
-        const messageElement = document.getElementById("adminActionMessage");
-        messageElement.textContent = message;
-        messageElement.className = "form-feedback";
-
-        if (type) {
-          messageElement.classList.add(`is-${type}`);
+        if (!message) {
+          return;
         }
+        window.appNotifier?.[type || "info"]?.(message);
       }
 
       function handleDocumentFileSelection(event) {
         const selectedFile = event.target.files?.[0];
         const pathInput = document.getElementById("docPath");
         const nameInput = document.getElementById("docName");
+        const label = document.getElementById("pickedDocFileLabel");
 
         if (!selectedFile) {
           pathInput.value = "";
+          label.textContent = "Ningun archivo seleccionado";
           return;
         }
 
         pathInput.value = selectedFile.path || "";
+        label.textContent = selectedFile.name || "Archivo seleccionado";
 
         if (!nameInput.value.trim()) {
           const fileName = selectedFile.name || "";
