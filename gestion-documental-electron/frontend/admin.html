@@ -179,7 +179,7 @@
           <input type="file" id="docFile" class="picker-input" />
           <div class="picker-row">
             <button type="button" id="pickDocFileBtn">Explorar archivo</button>
-            <span id="pickedDocFileLabel" class="picker-label">Ningun archivo seleccionado</span>
+            <span id="pickedDocFileLabel" class="picker-label">Ningún archivo seleccionado</span>
           </div>
           <input
             type="text"
@@ -230,6 +230,8 @@
       </div>
     </div>
 
+    <script src="picker-utils.js"></script>
+    <script src="document-dialogs.js"></script>
     <script src="notifications.js"></script>
     <script>
       const API_BASE = "http://localhost:3000";
@@ -304,9 +306,10 @@
         document
           .getElementById("rootFolderForm")
           .addEventListener("submit", handleRootFolderSubmit);
-        document
-          .getElementById("pickRootFolderBtn")
-          .addEventListener("click", () => document.getElementById("rootFolderPicker").click());
+        window.pickerUtils.bindPickerTrigger(
+          "pickRootFolderBtn",
+          "rootFolderPicker",
+        );
         document
           .getElementById("rootFolderPicker")
           .addEventListener("change", handleRootFolderSelection);
@@ -319,9 +322,7 @@
         document
           .getElementById("createDocForm")
           .addEventListener("submit", handleCreateDocument);
-        document
-          .getElementById("pickDocFileBtn")
-          .addEventListener("click", () => document.getElementById("docFile").click());
+        window.pickerUtils.bindPickerTrigger("pickDocFileBtn", "docFile");
         document
           .getElementById("docFile")
           .addEventListener("change", handleDocumentFileSelection);
@@ -403,36 +404,32 @@
         }
 
         event.target.reset();
+        document.getElementById("pickedRootFolderLabel").textContent =
+          "Ninguna carpeta seleccionada";
         await loadRootFolders();
         await loadRootFoldersForSelect();
         setAdminActionMessage("Carpeta raíz agregada exitosamente.", "success");
       }
 
       function handleRootFolderSelection(event) {
-        const selectedFile = event.target.files?.[0];
+        const selection = window.pickerUtils.deriveFolderSelection(
+          event.target.files?.[0],
+        );
         const pathInput = document.getElementById("folderPath");
         const nameInput = document.getElementById("folderName");
         const label = document.getElementById("pickedRootFolderLabel");
 
-        if (!selectedFile) {
+        if (!selection) {
           pathInput.value = "";
           label.textContent = "Ninguna carpeta seleccionada";
           return;
         }
 
-        const absoluteFilePath = selectedFile.path || "";
-        const relativeFilePath = selectedFile.webkitRelativePath || selectedFile.name || "";
-        const normalizedRelativePath = relativeFilePath.replace(/\//g, "\\");
-        const folderPath = absoluteFilePath
-          ? absoluteFilePath.slice(0, absoluteFilePath.length - normalizedRelativePath.length).replace(/[\\\/]$/, "")
-          : "";
-        const folderName = relativeFilePath.split("/")[0] || "";
-
-        pathInput.value = folderPath;
-        label.textContent = folderPath || "Carpeta seleccionada";
+        pathInput.value = selection.absolutePath;
+        label.textContent = selection.label;
 
         if (!nameInput.value.trim()) {
-          nameInput.value = folderName || folderPath.split(/[/\\]/).pop() || "";
+          nameInput.value = selection.suggestedName;
         }
       }
 
@@ -455,6 +452,7 @@
           setAdminActionMessage(
             "La indexación se inició correctamente en segundo plano.",
             "success",
+            { duration: 5000 },
           );
         } catch (error) {
           console.error("Error starting indexing:", error);
@@ -462,6 +460,7 @@
           setAdminActionMessage(
             error.message || "No se pudo iniciar la indexación.",
             "error",
+            { duration: 7000 },
           );
         }
       }
@@ -573,7 +572,7 @@
         setAdminActionMessage("");
         const folder = currentRootFolders.find((item) => item.id === id);
         if (!folder) {
-          alert("No se pudo identificar la carpeta raíz.");
+          setAdminActionMessage("No se pudo identificar la carpeta raíz.", "error");
           return;
         }
 
@@ -730,40 +729,48 @@
           .replace(/'/g, "&#39;");
       }
 
-      function setCreateDocumentMessage(message, type = "") {
+      function showToast(message, type = "info", options = {}) {
         if (!message) {
           return;
         }
-        window.appNotifier?.[type || "info"]?.(message);
+        const defaults =
+          type === "error"
+            ? { duration: 7000, closable: true }
+            : { duration: 4000, closable: true };
+        window.appNotifier?.show(message, {
+          type,
+          ...defaults,
+          ...options,
+        });
       }
 
-      function setAdminActionMessage(message, type = "") {
-        if (!message) {
-          return;
-        }
-        window.appNotifier?.[type || "info"]?.(message);
+      function setCreateDocumentMessage(message, type = "info", options = {}) {
+        showToast(message, type, options);
+      }
+
+      function setAdminActionMessage(message, type = "info", options = {}) {
+        showToast(message, type, options);
       }
 
       function handleDocumentFileSelection(event) {
-        const selectedFile = event.target.files?.[0];
+        const selection = window.pickerUtils.deriveFileSelection(
+          event.target.files?.[0],
+        );
         const pathInput = document.getElementById("docPath");
         const nameInput = document.getElementById("docName");
         const label = document.getElementById("pickedDocFileLabel");
 
-        if (!selectedFile) {
+        if (!selection) {
           pathInput.value = "";
-          label.textContent = "Ningun archivo seleccionado";
+          label.textContent = "Ningún archivo seleccionado";
           return;
         }
 
-        pathInput.value = selectedFile.path || "";
-        label.textContent = selectedFile.name || "Archivo seleccionado";
+        pathInput.value = selection.absolutePath;
+        label.textContent = selection.label;
 
         if (!nameInput.value.trim()) {
-          const fileName = selectedFile.name || "";
-          const lastDotIndex = fileName.lastIndexOf(".");
-          nameInput.value =
-            lastDotIndex > 0 ? fileName.slice(0, lastDotIndex) : fileName;
+          nameInput.value = selection.suggestedName;
         }
 
         syncRelativePathWithSelection();
@@ -789,18 +796,11 @@
           return;
         }
 
-        const normalizePath = (value) =>
-          String(value).replace(/\//g, "\\").toLowerCase();
-
-        const normalizedAbsolutePath = normalizePath(absolutePath);
-        const normalizedRootPath = normalizePath(rootAbsolutePath);
-
-        if (normalizedAbsolutePath.startsWith(`${normalizedRootPath}\\`)) {
-          relativePathInput.value = absolutePath.slice(rootAbsolutePath.length + 1);
-          return;
-        }
-
-        relativePathInput.value = selectedFile.name || "";
+        relativePathInput.value = window.pickerUtils.deriveRelativePath(
+          absolutePath,
+          rootAbsolutePath,
+          selectedFile.name || "",
+        );
       }
 
       async function handleCreateDocument(event) {
@@ -852,9 +852,12 @@
         setCreateDocumentMessage(
           "Archivo subido y documento creado exitosamente.",
           "success",
+          { duration: 5000 },
         );
 
         event.target.reset();
+        document.getElementById("pickedDocFileLabel").textContent =
+          "Ningún archivo seleccionado";
 
         if (hasSearchedDocuments) {
           await searchDocuments();
@@ -924,11 +927,20 @@
       }
 
       async function viewDetail(id) {
-        const res = await fetch(`${API_BASE}/api/documents/${id}`, {
-          credentials: "include",
-        });
-        const doc = await res.json();
-        alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
+        try {
+          const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+            credentials: "include",
+          });
+          const doc = await res.json();
+
+          if (!res.ok) {
+            throw new Error(doc.message || "No se pudo cargar el detalle.");
+          }
+
+          window.documentDialogs.showDocumentDetail(doc);
+        } catch (error) {
+          setAdminActionMessage(error.message, "error");
+        }
       }
 
       async function openDoc(id) {

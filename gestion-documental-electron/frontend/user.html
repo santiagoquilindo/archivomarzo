@@ -74,7 +74,7 @@
       </div>
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (user)</p>
-        <button id="logoutBtn">Cerrar sesion</button>
+        <button id="logoutBtn">Cerrar sesión</button>
       </div>
 
       <div class="card">
@@ -84,7 +84,7 @@
           <input
             type="text"
             id="filterVoucher"
-            placeholder="Numero comprobante"
+            placeholder="Número comprobante"
           />
           <select id="filterRootFolder">
             <option value="">Todas las carpetas</option>
@@ -100,12 +100,13 @@
           <button id="searchBtn">Buscar</button>
         </div>
         <p id="documentsHint" style="margin-top: 12px; color: #146c2e">
-          Los documentos apareceran cuando pulses "Buscar".
+          Los documentos aparecerán cuando pulses "Buscar".
         </p>
         <div id="documentsList"></div>
       </div>
     </div>
 
+    <script src="document-dialogs.js"></script>
     <script src="notifications.js"></script>
     <script>
       const API_BASE = "http://localhost:3000";
@@ -210,7 +211,7 @@
       function clearDocumentsList() {
         document.getElementById("documentsList").innerHTML = "";
         document.getElementById("documentsHint").textContent =
-          'Los documentos apareceran cuando pulses "Buscar".';
+          'Los documentos aparecerán cuando pulses "Buscar".';
       }
 
       function normalizeDocumentStatus(status) {
@@ -284,19 +285,36 @@
           .replace(/'/g, "&#39;");
       }
 
-      function setUserActionMessage(message, type = "") {
+      function setUserActionMessage(message, type = "info", options = {}) {
         if (!message) {
           return;
         }
-        window.appNotifier?.[type || "info"]?.(message);
+        const defaults =
+          type === "error"
+            ? { duration: 7000, closable: true }
+            : { duration: 4000, closable: true };
+        window.appNotifier?.show(message, {
+          type,
+          ...defaults,
+          ...options,
+        });
       }
 
       async function viewDetail(id) {
-        const res = await fetch(`${API_BASE}/api/documents/${id}`, {
-          credentials: "include",
-        });
-        const doc = await res.json();
-        alert(`Detalle: ${JSON.stringify(doc, null, 2)}`);
+        try {
+          const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+            credentials: "include",
+          });
+          const doc = await res.json();
+
+          if (!res.ok) {
+            throw new Error(doc.message || "No se pudo cargar el detalle.");
+          }
+
+          window.documentDialogs.showDocumentDetail(doc);
+        } catch (error) {
+          setUserActionMessage(error.message, "error");
+        }
       }
 
       async function openDoc(id) {
@@ -315,15 +333,28 @@
           return;
         }
 
-        setUserActionMessage("Archivo abierto correctamente.", "success");
+        setUserActionMessage("Archivo abierto correctamente.", "success", {
+          duration: 5000,
+        });
       }
 
       async function viewHistory(id) {
-        const res = await fetch(`${API_BASE}/api/documents/${id}/history`, {
-          credentials: "include",
-        });
-        const history = await res.json();
-        alert(`Historial: ${JSON.stringify(history, null, 2)}`);
+        try {
+          const res = await fetch(`${API_BASE}/api/documents/${id}/history`, {
+            credentials: "include",
+          });
+          const history = await res.json();
+
+          if (!res.ok) {
+            throw new Error(history.message || "No se pudo cargar el historial.");
+          }
+
+          window.documentDialogs.showHistory(
+            Array.isArray(history) ? history : [],
+          );
+        } catch (error) {
+          setUserActionMessage(error.message, "error");
+        }
       }
     </script>
   </body>

@@ -6,14 +6,62 @@
       document.body.appendChild(this.container);
     }
 
-    show(message, type = "info", duration = 3500) {
+    normalizeOptions(typeOrOptions, duration) {
+      if (typeof typeOrOptions === "object" && typeOrOptions !== null) {
+        return {
+          type: typeOrOptions.type || "info",
+          duration:
+            typeOrOptions.duration === undefined ? 3500 : typeOrOptions.duration,
+          closable: typeOrOptions.closable !== false,
+        };
+      }
+
+      return {
+        type: typeOrOptions || "info",
+        duration: duration === undefined ? 3500 : duration,
+        closable: true,
+      };
+    }
+
+    getIconLabel(type) {
+      return {
+        success: "OK",
+        error: "!",
+        info: "i",
+      }[type] || "i";
+    }
+
+    show(message, typeOrOptions = "info", duration) {
       if (!message) {
         return;
       }
 
+      const options = this.normalizeOptions(typeOrOptions, duration);
       const notification = document.createElement("div");
-      notification.className = `app-notification is-${type}`;
-      notification.textContent = message;
+      notification.className = `app-notification is-${options.type}`;
+      notification.innerHTML = `
+        <div class="app-notification-body">
+          <span class="app-notification-icon"></span>
+          <div class="app-notification-content"></div>
+        </div>
+      `;
+      notification.querySelector(".app-notification-icon").textContent =
+        this.getIconLabel(options.type);
+      notification.querySelector(".app-notification-content").textContent = message;
+
+      if (options.closable) {
+        const closeButton = document.createElement("button");
+        closeButton.type = "button";
+        closeButton.className = "app-notification-close";
+        closeButton.setAttribute("aria-label", "Cerrar notificación");
+        closeButton.textContent = "x";
+        closeButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          closeNotification();
+        });
+        notification.appendChild(closeButton);
+      }
+
       this.container.appendChild(notification);
 
       window.requestAnimationFrame(() => {
@@ -25,20 +73,22 @@
         window.setTimeout(() => notification.remove(), 180);
       };
 
-      window.setTimeout(closeNotification, duration);
+      if (options.duration > 0) {
+        window.setTimeout(closeNotification, options.duration);
+      }
       notification.addEventListener("click", closeNotification);
     }
 
-    success(message, duration) {
-      this.show(message, "success", duration);
+    success(message, options) {
+      this.show(message, { type: "success", ...(typeof options === "object" ? options : { duration: options }) });
     }
 
-    error(message, duration) {
-      this.show(message, "error", duration);
+    error(message, options) {
+      this.show(message, { type: "error", ...(typeof options === "object" ? options : { duration: options }) });
     }
 
-    info(message, duration) {
-      this.show(message, "info", duration);
+    info(message, options) {
+      this.show(message, { type: "info", ...(typeof options === "object" ? options : { duration: options }) });
     }
   }
 
