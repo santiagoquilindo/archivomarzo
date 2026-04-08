@@ -1,193 +1,288 @@
-# Gestión Documental - Base local (Electron + Express + SQLite)
+# Gestión Documental Electron
 
-## Objetivo
-Base inicial de aplicación de escritorio local para gestión documental en Windows:
-- Login funcional
-- Roles admin/user
-- Sesión local segura (cookie httpOnly)
-- SQLite local
-- **Módulo documental mínimo: indexación, búsqueda, gestión básica**
+Aplicación de escritorio local para gestión documental en Windows, construida con Electron, Express y SQLite.
 
-## Estructura de carpetas
+## Alcance actual
 
-- `/electron` - ejecutable Electron y ventana principal
-- `/backend` - API local con Express
-  - `/src/db` - conexión SQLite + init (agregadas tablas documentales)
-  - `/src/routes` - rutas de auth, protegidas, **root-folders, documents, indexing**
-  - `/src/middleware` - JWT auth middleware
-  - `/src/services` - lógica de usuarios, **rootFolder, document, indexing**
-- `/frontend` - páginas HTML/CSS/JS (actualizadas con UI documental)
-- `/data` - base de datos SQLite generada en runtime
+El proyecto permite:
 
-## Archivos clave de DB
+- autenticación local con roles `admin` y `user`
+- gestión de carpetas raíz documentales
+- indexación de archivos desde carpetas activas
+- búsqueda y consulta de documentos
+- creación de documentos con copia física al repositorio documental
+- edición de metadatos
+- historial de acciones por documento
+- apertura de archivos desde la aplicación
 
-1. Archivo que crea la base de datos: `backend/src/db/db.js` (abre/crea `data/app.db`).
-2. Archivo que crea tabla users: `backend/src/db/init.js` (ejecuta `CREATE TABLE IF NOT EXISTS users`).
-3. Archivo que crea tablas documentales: `backend/src/db/init.js` (root_folders, documents, document_history, indexing_runs).
-4. Ejecución inicial: `npm run init-db`.
-5. Cambios futuros: editar `backend/src/db/init.js` para migraciones/seed, o usar SQLite CLI sobre `data/app.db`.
+## Tecnologías principales
 
-## Nuevas tablas creadas
+- Electron
+- Express
+- SQLite
+- JSON Web Token en cookie `httpOnly`
+- HTML, CSS y JavaScript vanilla
 
-- `root_folders`: id, name, absolute_path, is_active, created_at, updated_at
-- `documents`: id, original_name, absolute_path, relative_path, root_folder_id, file_extension, file_size, file_hash, file_modified_at, document_date, voucher_number, category, document_type, notes, source_area, status, created_by, updated_by, created_at, updated_at
-- `document_history`: id, document_id, action, field_name, old_value, new_value, performed_by, performed_at
-- `indexing_runs`: id, started_at, finished_at, status, scanned_files_count, indexed_files_count, updated_files_count, missing_files_count, error_count, notes
+## Requisitos
 
-## Credenciales de prueba
+- Windows
+- Node.js 18 o superior
+- npm
 
-- admin / admin123 (rol `admin`)
-- user / user123 (rol `user`)
+## Instalación
 
-## Instalación (una sola vez)
+Desde PowerShell:
 
 ```powershell
-cd "d:/sag/segundo trimestre/marzo buscador/gestion-documental-electron"
+cd "d:\sag\segundo trimestre\marzo buscador\gestion-documental-electron"
 npm install
 npm run init-db
 ```
 
-## Ejecución (desarrollo)
+## Ejecución
+
+Para abrir la aplicación completa:
 
 ```powershell
-cd "d:/sag/segundo trimestre/marzo buscador/gestion-documental-electron"
-npm run dev
+npm start
 ```
 
-- Abre Electron.
-- Backend arranca automático (`backend/src/server.js` en puerto `3000`).
-- Interfaz carga `frontend/index.html`.
-- Desde navegador (opcional) también puedes usar `http://localhost:3000`.
+Esto hace lo siguiente:
 
-## Nuevos endpoints API
+- abre la ventana Electron
+- inicia la API local en `http://localhost:3000`
+- conecta o crea la base de datos en `data\app.db`
 
-### Root Folders (admin)
+Si necesitas arrancar solo la API:
+
+```powershell
+npm run start-api
+```
+
+## Credenciales de prueba
+
+- `admin / admin123`
+- `user / user123`
+
+## Flujo de instalación recomendado
+
+1. Instalar dependencias con `npm install`.
+2. Crear o inicializar la base de datos con `npm run init-db`.
+3. Ejecutar la aplicación con `npm start`.
+4. Ingresar con una cuenta de prueba.
+5. Registrar una carpeta raíz documental.
+6. Ejecutar indexación o crear documentos manualmente.
+
+## Estructura del proyecto
+
+```text
+gestion-documental-electron/
+├─ backend/
+│  └─ src/
+│     ├─ db/
+│     ├─ middleware/
+│     ├─ routes/
+│     └─ services/
+├─ data/
+├─ electron/
+├─ frontend/
+├─ test_docs/
+├─ package.json
+└─ README.md
+```
+
+## Carpetas clave
+
+- `backend/src/db`
+  Conexión SQLite e inicialización de tablas.
+
+- `backend/src/routes`
+  Endpoints de autenticación, documentos, indexación y carpetas raíz.
+
+- `backend/src/services`
+  Lógica de negocio para usuarios, documentos, carpetas raíz e indexación.
+
+- `electron`
+  Proceso principal de Electron y arranque de la app.
+
+- `frontend`
+  Pantallas HTML, estilos CSS y scripts del cliente.
+
+- `data`
+  Base de datos SQLite generada localmente.
+
+- `test_docs`
+  Carpeta de prueba para indexación y validaciones manuales.
+
+## Base de datos
+
+Archivo principal:
+
+- `data/app.db`
+
+Tablas principales:
+
+- `users`
+- `root_folders`
+- `documents`
+- `document_history`
+- `indexing_runs`
+
+La inicialización de tablas y usuarios semilla se encuentra en:
+
+- `backend/src/db/init.js`
+
+## Respaldo de base de datos
+
+Antes de hacer cambios importantes o pruebas de indexación grandes, conviene respaldar la base de datos.
+
+### Copia manual rápida
+
+```powershell
+Copy-Item `
+  "d:\sag\segundo trimestre\marzo buscador\gestion-documental-electron\data\app.db" `
+  "d:\sag\segundo trimestre\marzo buscador\gestion-documental-electron\data\app-backup.db"
+```
+
+### Recomendación práctica
+
+- hacer respaldo antes de pruebas masivas
+- conservar al menos una copia diaria si se usa operativamente
+- no versionar `app.db` en Git
+
+## Endpoints principales
+
+### Autenticación
+
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/protected/me`
+
+### Carpetas raíz
+
 - `GET /api/root-folders`
-- `POST /api/root-folders` { name, absolutePath }
-- `PUT /api/root-folders/:id` { name, absolutePath, isActive }
+- `POST /api/root-folders`
+- `PUT /api/root-folders/:id`
 - `DELETE /api/root-folders/:id`
 
-### Indexing (admin)
+### Documentos
+
+- `GET /api/documents`
+- `GET /api/documents/:id`
+- `POST /api/documents`
+- `PUT /api/documents/:id`
+- `GET /api/documents/:id/history`
+- `POST /api/documents/:id/open`
+
+### Indexación
+
 - `POST /api/indexing/run`
 - `GET /api/indexing/runs`
 
-### Documents
-- `GET /api/documents` (con filtros: ?name=...&voucher=...&rootFolderId=...)
-- `GET /api/documents/:id`
-- `POST /api/documents` (admin) { originalName, absolutePath, ... }
-- `PUT /api/documents/:id` (admin) { updates }
-- `GET /api/documents/:id/history`
-- `POST /api/documents/:id/open` (registra apertura)
+## Uso básico
 
-## Seguridad implementada
+### Como administrador
 
-- bcrypt para hash de contraseña.
-- Validación de campos vacíos.
-- Rutas protegidas con JWT en cookie httpOnly.
-- Middleware `requireRole('admin')` para endpoints sensibles.
-- Manejo básico de errores.
+1. Iniciar sesión como `admin`.
+2. Registrar una carpeta raíz documental.
+3. Ejecutar indexación o crear documentos manualmente.
+4. Consultar detalle, historial y edición de documentos.
 
-## Módulo documental implementado
+### Como usuario
 
-- **Configuración carpetas raíz**: Admin agrega/lista/activa/desactiva/elimina carpetas documentales.
-- **Indexación**: Escanea carpetas activas, indexa archivos en DB, evita duplicados por hash, actualiza si cambió, marca missing si desapareció.
-- **Búsqueda**: Filtrar por nombre, voucher, carpeta raíz, etc.
-- **Gestión**: Ver detalle, abrir archivo local, editar metadatos (admin), crear nuevo documento (admin, copia archivo a carpeta destino).
-- **Historial**: Básico por documento (indexed, created, updated, opened, marked_missing).
-- **Roles**: Admin todo, User solo leer/buscar/abrir/ver historial.
+1. Iniciar sesión como `user`.
+2. Buscar documentos.
+3. Ver detalle e historial.
+4. Abrir archivos disponibles.
 
-## Próxima fase preparada
+## Empaquetado
 
-- Agregar OCR en indexación.
-- IA para categorización automática.
-- Subida remota.
-- Sincronización.
-- Versionado avanzado.
-- Visor PDF integrado.
+El proyecto tiene configurado `electron-builder`.
 
-## Archivos modificados
-
-- `backend/src/db/init.js`: Agregadas tablas documentales.
-- `backend/src/server.js`: Incluidas nuevas rutas.
-- `frontend/admin.html`: Agregada UI completa para admin (carpetas, indexación, documentos, crear/editar).
-- `frontend/user.html`: Agregada UI para user (listado, búsqueda, detalle, abrir, historial).
-- `frontend/styles.css`: Agregados estilos para filtros y modal.
-- `package.json`: Agregado multer (para futuras subidas).
-
-## Archivos nuevos
-
-- `backend/src/services/rootFolderService.js`
-- `backend/src/services/documentService.js`
-- `backend/src/services/indexingService.js`
-- `backend/src/routes/rootFolders.js`
-- `backend/src/routes/documents.js`
-- `backend/src/routes/indexing.js`
-
-## Estructura de carpetas
-
-- `/electron` - ejecutable Electron y ventana principal
-- `/backend` - API local con Express
-  - `/src/db` - conexión SQLite + init
-  - `/src/routes` - rutas de auth y protegidas
-  - `/src/middleware` - JWT auth middleware
-  - `/src/services` - lógica de usuarios
-- `/frontend` - páginas HTML/CSS/JS
-- `/data` - base de datos SQLite generada en runtime
-
-## Archivos clave de DB
-
-1. Archivo que crea la base de datos: `backend/src/db/db.js` (abre/crea `data/app.db`).
-2. Archivo que crea tabla `users`: `backend/src/db/init.js` (ejecuta `CREATE TABLE IF NOT EXISTS users`).
-3. Archivo que inserta usuarios iniciales: `backend/src/db/init.js` (seed `admin` + `user`).
-4. Ejecución inicial: `npm run init-db`.
-5. Cambios futuros: editar `backend/src/db/init.js` para estructura/seed, o usar SQLite CLI sobre `data/app.db`.
-
-## Credenciales de prueba
-
-- admin / admin123 (rol `admin`)
-- user / user123 (rol `user`)
-
-## Instalación (una sola vez)
+Para generar paquete:
 
 ```powershell
-cd "d:/sag/segundo trimestre/marzo buscador/gestion-documental-electron"
-npm install
+npm run package
+```
+
+Salida esperada:
+
+- carpeta `dist/`
+
+Nota:
+
+- el empaquetado existe, pero todavía requiere validación operativa completa antes de considerarse listo para producción
+
+## Troubleshooting
+
+### La app no inicia
+
+Revisar:
+
+- que estés ubicado en la carpeta del proyecto
+- que `node_modules` exista
+- que ya se haya ejecutado `npm install`
+
+Comandos útiles:
+
+```powershell
+pwd
+ls
+```
+
+### La API no responde en localhost:3000
+
+Verifica:
+
+- que `npm start` esté corriendo
+- que no haya otro proceso usando el puerto `3000`
+
+### No se crea la base de datos
+
+Ejecuta:
+
+```powershell
 npm run init-db
 ```
 
-## Ejecución (desarrollo)
+Luego confirma que exista:
 
-```powershell
-npm run dev
-```
+- `data/app.db`
 
-Esto abre ventana Electron y carga `frontend/index.html`.
+### Error al crear un documento
 
-## Ruta API local
+Causas comunes:
 
-`http://localhost:3000/api`
+- la ruta seleccionada no existe
+- el archivo fue movido o borrado
+- la carpeta raíz no está bien definida
 
-### Endpoints
-- `POST /api/auth/login` { username, password }
-- `POST /api/auth/logout`
-- `GET /api/protected/me` (token httpOnly)
+Solución:
 
-## Pruebas de login
+- usar el botón `Explorar archivo`
+- verificar que la carpeta raíz esté activa
+- revisar que el archivo siga existiendo físicamente
 
-1. Abre app.
-2. Ingresa `admin` / `admin123` → redirige `admin.html`.
-3. Ingresa `user` / `user123` → redirige `user.html`.
-4. Presiona logout y vuelve a login.
+### El usuario no puede ver carpetas raíz
 
-## Seguridad implementada
+Eso es esperado.
 
-- bcrypt para hash de contraseña (en `backend/src/db/init.js` y `backend/src/services/userService.js`).
-- Validación de campos vacíos en frontend (`frontend/app.js`) y backend (`backend/src/routes/auth.js`).
-- Rutas protegidas con JWT en cookie httpOnly (`backend/src/middleware/authMiddleware.js`).
-- Manejo básico de errores en middleware de Express y en login.
+- el endpoint de carpetas raíz es administrativo
+- el panel de usuario trabaja sobre búsqueda documental, no sobre administración de carpetas
 
-## Siguiente fase: adición de módulos documentales
+### El archivo no se abre
 
-- El backend puede crecer con nuevas rutas dentro de `/backend/src/routes`.
-- El frontend puede agregar páginas y lógica en `/frontend`.
-- Mantener la misma base `verifyToken` para permisos.
+Verifica:
+
+- que el archivo exista en la ruta almacenada
+- que Windows tenga una aplicación asociada a esa extensión
+
+### Aparece un warning de Electron sobre seguridad
+
+Actualmente puede aparecer un warning relacionado con `Content-Security-Policy`.
+
+Eso no bloquea el funcionamiento local, pero sigue siendo un punto pendiente para endurecimiento antes de producción.
+
+## Estado actual de documentación
+
+Este README describe el flujo real actual del proyecto.
