@@ -7,6 +7,7 @@ const userDataPath = path.join(__dirname, '..', '..', 'electron-user-data');
 app.setPath('userData', userDataPath);
 
 const BACKEND_URL = 'http://localhost:3000';
+const isDev = process.env.NODE_ENV !== 'production';
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -15,13 +16,18 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      devTools: isDev,
     },
   });
 
   // Cargar la interfaz desde el servidor local para que las rutas /api funciones con la misma base
   win.loadURL(BACKEND_URL);
-  // abrir devtools para debugging
-  win.webContents.openDevTools();
+
+  if (isDev) {
+    win.webContents.openDevTools();
+  }
 }
 
 app.whenReady().then(() => {
