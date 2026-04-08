@@ -8,17 +8,17 @@ const protectedRoutes = require('./routes/protected');
 const rootFolderRoutes = require('./routes/rootFolders');
 const documentRoutes = require('./routes/documents');
 const indexingRoutes = require('./routes/indexing');
+const { BASE_URL, FRONTEND_PUBLIC_CONFIG, PORT } = require('./config');
 const { sendError } = require('./utils/http');
 
 const app = express();
-const PORT = 3000;
 const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self' data:",
-  "connect-src 'self' http://localhost:3000 http://127.0.0.1:3000",
+  "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -36,6 +36,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
+
+app.get('/app-config.js', (req, res) => {
+  res.type('application/javascript');
+  res.send(`window.APP_CONFIG = ${JSON.stringify(FRONTEND_PUBLIC_CONFIG, null, 2)};`);
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
@@ -61,5 +66,5 @@ app.use((err, req, res, next) => {
 initDatabase();
 
 app.listen(PORT, () => {
-  console.log(`API local escuchando en http://localhost:${PORT}`);
+  console.log(`API local escuchando en ${BASE_URL}`);
 });

@@ -34,7 +34,8 @@
     updated: "Actualización",
     opened: "Apertura",
     indexed: "Indexación",
-    missing_detected: "Marcado como no encontrado",
+    reindexed: "Reindexación",
+    marked_missing: "Marcado como no encontrado",
     restored: "Restauración",
   };
 
@@ -45,26 +46,30 @@
       <div class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsDialogTitle">
         <div class="details-dialog-header">
           <h3 id="detailsDialogTitle" class="details-dialog-title"></h3>
-          <button type="button" class="details-dialog-close" aria-label="Cerrar">x</button>
+          <button type="button" class="details-dialog-close" aria-label="Cerrar">×</button>
         </div>
         <div class="details-dialog-body"></div>
       </div>
     `;
 
     document.body.appendChild(overlay);
+
     overlay
       .querySelector(".details-dialog-close")
-      .addEventListener("click", () => closeDialog());
+      .addEventListener("click", closeDialog);
+
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) {
         closeDialog();
       }
     });
+
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && overlay.classList.contains("is-visible")) {
         closeDialog();
       }
     });
+
     return overlay;
   }
 
@@ -74,10 +79,9 @@
 
   function closeDialog() {
     const overlay = document.querySelector(".details-dialog-overlay");
-    if (!overlay) {
-      return;
+    if (overlay) {
+      overlay.classList.remove("is-visible");
     }
-    overlay.classList.remove("is-visible");
   }
 
   function showDialog(title, contentNode) {
@@ -93,6 +97,7 @@
     if (value === null || value === undefined || value === "") {
       return "Sin dato";
     }
+
     return String(value);
   }
 
@@ -100,6 +105,7 @@
     if (field === "status") {
       return STATUS_LABELS[value] || formatValue(value);
     }
+
     return formatValue(value);
   }
 
@@ -107,19 +113,21 @@
     const wrapper = document.createElement("div");
     wrapper.className = "details-grid";
 
-    FIELD_LABELS.forEach(([field, label]) => {
-      const item = document.createElement("div");
-      item.className = "details-grid-item";
-      item.innerHTML = `
-        <span class="details-grid-label">${label}</span>
-        <span class="details-grid-value"></span>
-      `;
-      item.querySelector(".details-grid-value").textContent = formatFieldValue(
-        field,
-        documentData?.[field],
-      );
-      wrapper.appendChild(item);
-    });
+    FIELD_LABELS
+      .filter(([field]) => Object.prototype.hasOwnProperty.call(documentData || {}, field))
+      .forEach(([field, label]) => {
+        const item = document.createElement("div");
+        item.className = "details-grid-item";
+        item.innerHTML = `
+          <span class="details-grid-label">${label}</span>
+          <span class="details-grid-value"></span>
+        `;
+        item.querySelector(".details-grid-value").textContent = formatFieldValue(
+          field,
+          documentData?.[field],
+        );
+        wrapper.appendChild(item);
+      });
 
     showDialog("Detalle del documento", wrapper);
   }

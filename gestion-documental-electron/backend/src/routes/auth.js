@@ -4,7 +4,7 @@ const {
   findUserByUsername,
   verifyPassword,
 } = require('../services/userService');
-const { tokenSecret } = require('../middleware/authMiddleware');
+const { COOKIE_SECURE, JWT_SECRET } = require('../config');
 const {
   AppError,
   normalizeText,
@@ -54,11 +54,11 @@ router.post('/login', async (req, res) => {
       role: user.role,
     };
 
-    const token = jwt.sign(payload, tokenSecret, { expiresIn: '8h' });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
+      secure: COOKIE_SECURE,
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 8,
     });

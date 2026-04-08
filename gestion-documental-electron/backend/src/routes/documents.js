@@ -21,6 +21,48 @@ const {
 
 const router = express.Router();
 
+function sanitizeDocumentSummary(documentData) {
+  if (!documentData) {
+    return documentData;
+  }
+
+  return {
+    id: documentData.id,
+    original_name: documentData.original_name,
+    stored_name: documentData.stored_name,
+    relative_path: documentData.relative_path,
+    root_folder_id: documentData.root_folder_id,
+    root_folder_name: documentData.root_folder_name,
+    file_extension: documentData.file_extension,
+    file_size: documentData.file_size,
+    file_modified_at: documentData.file_modified_at,
+    document_date: documentData.document_date,
+    voucher_number: documentData.voucher_number,
+    category: documentData.category,
+    document_type: documentData.document_type,
+    notes: documentData.notes,
+    source_area: documentData.source_area,
+    status: documentData.status,
+    created_at: documentData.created_at,
+    updated_at: documentData.updated_at,
+  };
+}
+
+function sanitizeDocumentDetail(documentData, role) {
+  if (!documentData) {
+    return documentData;
+  }
+
+  const safeDocument = sanitizeDocumentSummary(documentData);
+
+  if (role === 'admin') {
+    safeDocument.absolute_path = documentData.absolute_path;
+    safeDocument.file_hash = documentData.file_hash;
+  }
+
+  return safeDocument;
+}
+
 async function openFileWithSystem(absolutePath) {
   try {
     const electron = require('electron');
@@ -91,7 +133,7 @@ router.get('/', verifyToken, async (req, res) => {
 
   try {
     const docs = await getDocuments(filters);
-    return res.json(docs);
+    return res.json(docs.map(sanitizeDocumentSummary));
   } catch (error) {
     console.error('Get documents error:', error.message);
     return sendError(res, error, 'Error obteniendo documentos');
@@ -110,7 +152,7 @@ router.get('/:id', verifyToken, async (req, res) => {
       );
     }
 
-    return res.json(doc);
+    return res.json(sanitizeDocumentDetail(doc, req.user?.role));
   } catch (error) {
     console.error('Get document error:', error.message);
     return sendError(res, error, 'Error obteniendo documento');
@@ -145,8 +187,8 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
   }
 
   try {
-    const document = await createDocument(payload, req.user.id);
-    return sendSuccess(res, { message: 'Documento creado', document }, 201);
+    const documentData = await createDocument(payload, req.user.id);
+    return sendSuccess(res, { message: 'Documento creado', document: documentData }, 201);
   } catch (error) {
     console.error('Create document error:', error.message);
     return sendError(res, error, 'Error creando documento');
@@ -211,7 +253,6 @@ router.post('/:id/open', verifyToken, async (req, res) => {
 
     return sendSuccess(res, {
       message: 'Archivo abierto con la aplicación predeterminada',
-      path: doc.absolute_path,
       method: openResult.method,
     });
   } catch (error) {

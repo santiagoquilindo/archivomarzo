@@ -1,20 +1,23 @@
 const jwt = require('jsonwebtoken');
-
-const tokenSecret =
-  process.env.JWT_SECRET || 'cambio-por-archivo-seguro-en-produccion';
+const { JWT_SECRET } = require('../config');
+const { AppError, sendError } = require('../utils/http');
 
 function verifyToken(req, res, next) {
   const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'No autenticado' });
+    return sendError(
+      res,
+      new AppError('No autenticado', 401, 'UNAUTHENTICATED'),
+    );
   }
 
-  jwt.verify(token, tokenSecret, (err, decoded) => {
-    if (err) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Token inválido' });
+  jwt.verify(token, JWT_SECRET, (error, decoded) => {
+    if (error) {
+      return sendError(
+        res,
+        new AppError('Token inválido', 401, 'INVALID_TOKEN'),
+      );
     }
 
     req.user = decoded;
@@ -30,13 +33,17 @@ function requireRole(role) {
     const requiredRole = String(role).toLowerCase();
 
     if (!req.user) {
-      return res.status(401).json({ success: false, message: 'No autenticado' });
+      return sendError(
+        res,
+        new AppError('No autenticado', 401, 'UNAUTHENTICATED'),
+      );
     }
 
     if (userRole !== requiredRole) {
-      return res
-        .status(403)
-        .json({ success: false, message: 'Acceso denegado' });
+      return sendError(
+        res,
+        new AppError('Acceso denegado', 403, 'FORBIDDEN'),
+      );
     }
 
     next();
@@ -46,5 +53,5 @@ function requireRole(role) {
 module.exports = {
   verifyToken,
   requireRole,
-  tokenSecret,
+  tokenSecret: JWT_SECRET,
 };

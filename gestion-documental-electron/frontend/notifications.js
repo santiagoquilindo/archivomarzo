@@ -45,16 +45,28 @@
           <div class="app-notification-content"></div>
         </div>
       `;
+
       notification.querySelector(".app-notification-icon").textContent =
         this.getIconLabel(options.type);
-      notification.querySelector(".app-notification-content").textContent = message;
+      notification.querySelector(".app-notification-content").textContent =
+        message;
+
+      let closeTimeoutId = null;
+
+      const closeNotification = () => {
+        notification.classList.remove("is-visible");
+        if (closeTimeoutId) {
+          window.clearTimeout(closeTimeoutId);
+        }
+        window.setTimeout(() => notification.remove(), 180);
+      };
 
       if (options.closable) {
         const closeButton = document.createElement("button");
         closeButton.type = "button";
         closeButton.className = "app-notification-close";
         closeButton.setAttribute("aria-label", "Cerrar notificación");
-        closeButton.textContent = "x";
+        closeButton.textContent = "×";
         closeButton.addEventListener("click", (event) => {
           event.stopPropagation();
           closeNotification();
@@ -68,27 +80,32 @@
         notification.classList.add("is-visible");
       });
 
-      const closeNotification = () => {
-        notification.classList.remove("is-visible");
-        window.setTimeout(() => notification.remove(), 180);
-      };
-
       if (options.duration > 0) {
-        window.setTimeout(closeNotification, options.duration);
+        closeTimeoutId = window.setTimeout(closeNotification, options.duration);
       }
+
       notification.addEventListener("click", closeNotification);
     }
 
     success(message, options) {
-      this.show(message, { type: "success", ...(typeof options === "object" ? options : { duration: options }) });
+      this.show(message, {
+        type: "success",
+        ...(typeof options === "object" ? options : { duration: options }),
+      });
     }
 
     error(message, options) {
-      this.show(message, { type: "error", ...(typeof options === "object" ? options : { duration: options }) });
+      this.show(message, {
+        type: "error",
+        ...(typeof options === "object" ? options : { duration: options }),
+      });
     }
 
     info(message, options) {
-      this.show(message, { type: "info", ...(typeof options === "object" ? options : { duration: options }) });
+      this.show(message, {
+        type: "info",
+        ...(typeof options === "object" ? options : { duration: options }),
+      });
     }
   }
 

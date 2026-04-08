@@ -4,6 +4,7 @@ const {
   getAllRootFolders,
   createRootFolder,
   updateRootFolder,
+  setRootFolderActive,
   deleteRootFolder,
 } = require('../services/rootFolderService');
 const {
@@ -43,11 +44,7 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
 
   try {
     const folder = await createRootFolder(name, absolutePath);
-    return sendSuccess(
-      res,
-      { message: 'Carpeta raíz creada', folder },
-      201,
-    );
+    return sendSuccess(res, { message: 'Carpeta raíz creada', folder }, 201);
   } catch (error) {
     console.error('Create root folder error:', error.message);
     return sendError(res, error, 'Error creando carpeta raíz');
@@ -92,6 +89,36 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   } catch (error) {
     console.error('Update root folder error:', error.message);
     return sendError(res, error, 'Error actualizando carpeta raíz');
+  }
+});
+
+router.patch('/:id/status', verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    const isActive = req.body?.isActive;
+
+    if (typeof isActive !== 'boolean') {
+      return sendError(
+        res,
+        new AppError('isActive debe ser booleano', 400, 'INVALID_IS_ACTIVE'),
+      );
+    }
+
+    const result = await setRootFolderActive(id, isActive);
+
+    if (!result.changes) {
+      return sendError(
+        res,
+        new AppError('Carpeta raíz no encontrada', 404, 'ROOT_FOLDER_NOT_FOUND'),
+      );
+    }
+
+    return sendSuccess(res, {
+      message: `Carpeta raíz ${isActive ? 'activada' : 'desactivada'}`,
+    });
+  } catch (error) {
+    console.error('Toggle root folder status error:', error.message);
+    return sendError(res, error, 'Error actualizando el estado de la carpeta raíz');
   }
 });
 

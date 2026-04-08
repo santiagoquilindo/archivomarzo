@@ -1,13 +1,11 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
-const backend = require('../backend/src/server');
+const { BASE_URL, IS_PRODUCTION } = require('../backend/src/config');
+require('../backend/src/server');
 
 // For environments con permisos limitados y rutas con espacios, usar carpeta local en app path.
 const userDataPath = path.join(__dirname, '..', '..', 'electron-user-data');
 app.setPath('userData', userDataPath);
-
-const BACKEND_URL = 'http://localhost:3000';
-const isDev = process.env.NODE_ENV !== 'production';
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -18,14 +16,13 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
-      devTools: isDev,
+      devTools: !IS_PRODUCTION,
     },
   });
 
-  // Cargar la interfaz desde el servidor local para que las rutas /api funciones con la misma base
-  win.loadURL(BACKEND_URL);
+  win.loadURL(BASE_URL);
 
-  if (isDev) {
+  if (!IS_PRODUCTION) {
     win.webContents.openDevTools();
   }
 }
@@ -34,7 +31,9 @@ app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
 });
 

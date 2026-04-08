@@ -7,10 +7,11 @@
     const button = getElement(buttonTarget);
     const input = getElement(inputTarget);
 
-    if (!button || !input) {
+    if (!button || !input || button.dataset.boundClick === "true") {
       return;
     }
 
+    button.dataset.boundClick = "true";
     button.addEventListener("click", () => input.click());
   }
 

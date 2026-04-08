@@ -6,75 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel Usuario</title>
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .container {
-        max-width: 1000px;
-      }
-
-      .documents-table-wrapper {
-        overflow-x: auto;
-        margin-top: 12px;
-      }
-
-      .documents-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-      }
-
-      .documents-table th,
-      .documents-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        text-align: left;
-        vertical-align: middle;
-      }
-
-      .documents-table th {
-        color: #146c2e;
-        background: #ecfdf3;
-        font-weight: 600;
-      }
-
-      .documents-table td:last-child {
-        min-width: 220px;
-      }
-
-      .documents-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .documents-actions button {
-        width: auto;
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-
-      .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 12px;
-        border: 1px solid transparent;
-        white-space: nowrap;
-      }
-    </style>
   </head>
   <body>
-    <div class="container">
+    <div class="container page-container-medium">
       <div class="page-header">
         <div class="brand">
           <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
           <h1 class="brand-title">Panel Usuario</h1>
         </div>
       </div>
+
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (user)</p>
-        <button id="logoutBtn">Cerrar sesión</button>
+        <button id="logoutBtn" type="button">Cerrar sesión</button>
       </div>
 
       <div class="card">
@@ -84,72 +28,54 @@
           <input
             type="text"
             id="filterVoucher"
-            placeholder="Número comprobante"
+            placeholder="Número de comprobante"
           />
-          <select id="filterRootFolder">
-            <option value="">Todas las carpetas</option>
-          </select>
           <select id="filterStatus">
             <option value="">Todos los estados</option>
             <option value="available">Disponible</option>
             <option value="updated">Actualizado</option>
-            <option value="missing">Missing</option>
+            <option value="missing">No encontrado</option>
             <option value="pending">Pendiente</option>
             <option value="error">Error</option>
           </select>
-          <button id="searchBtn">Buscar</button>
+          <button id="searchBtn" type="button">Buscar</button>
         </div>
-        <p id="documentsHint" style="margin-top: 12px; color: #146c2e">
+        <p id="documentsHint" class="documents-hint">
           Los documentos aparecerán cuando pulses "Buscar".
         </p>
         <div id="documentsList"></div>
       </div>
     </div>
 
+    <script src="/app-config.js"></script>
+    <script src="document-ui.js"></script>
     <script src="document-dialogs.js"></script>
     <script src="notifications.js"></script>
     <script>
-      const API_BASE = "http://localhost:3000";
-      const DOCUMENT_STATUS = {
-        available: {
-          label: "Disponible",
-          background: "#dcfce7",
-          color: "#166534",
-          border: "#86efac",
-        },
-        updated: {
-          label: "Actualizado",
-          background: "#fef3c7",
-          color: "#92400e",
-          border: "#fcd34d",
-        },
-        missing: {
-          label: "Missing",
-          background: "#fee2e2",
-          color: "#b91c1c",
-          border: "#fca5a5",
-        },
-        pending: {
-          label: "Pendiente",
-          background: "#e5e7eb",
-          color: "#4b5563",
-          border: "#d1d5db",
-        },
-        error: {
-          label: "Error",
-          background: "#ffedd5",
-          color: "#c2410c",
-          border: "#fdba74",
-        },
-      };
+      const API_BASE = window.APP_CONFIG?.BASE_URL || window.location.origin;
+      const USER_DOCUMENT_ACTIONS = [
+        { key: "detail", label: "Ver detalle" },
+        { key: "open", label: "Abrir" },
+        { key: "history", label: "Ver historial" },
+      ];
+
+      let userPageInitialized = false;
 
       window.addEventListener("DOMContentLoaded", setup);
 
       async function setup() {
+        if (userPageInitialized) {
+          return;
+        }
+
+        userPageInitialized = true;
+
         document.getElementById("logoutBtn").addEventListener("click", logout);
         document
           .getElementById("searchBtn")
           .addEventListener("click", handleDocumentSearch);
+
+        window.documentUi.bindDelegatedClicks("documentsList", handleDocumentAction);
         clearDocumentsList();
         await loadUser();
       }
@@ -163,136 +89,40 @@
       }
 
       async function loadUser() {
-        const res = await fetch(`${API_BASE}/api/protected/me`, {
-          credentials: "include",
-        });
+        try {
+          const response = await fetch(`${API_BASE}/api/protected/me`, {
+            credentials: "include",
+          });
 
-        if (res.status !== 200) {
+          if (response.status !== 200) {
+            window.location.href = "index.html";
+            return;
+          }
+
+          const body = await response.json();
+          if (body.user?.role !== "user") {
+            window.location.href = "admin.html";
+            return;
+          }
+
+          document.getElementById("userName").textContent =
+            body.user?.name || "Usuario";
+        } catch (error) {
+          console.error("Error auth/user:", error);
           window.location.href = "index.html";
-          return;
         }
-
-        const body = await res.json();
-        if (body.user?.role !== "user") {
-          window.location.href = "admin.html";
-          return;
-        }
-
-        document.getElementById("userName").innerText =
-          body.user?.name || "Usuario";
-      }
-
-      async function handleDocumentSearch() {
-        await searchDocuments();
-      }
-
-      async function searchDocuments() {
-        const name = document.getElementById("filterName").value.trim();
-        const voucher = document.getElementById("filterVoucher").value.trim();
-        const rootFolderId = document.getElementById("filterRootFolder").value;
-        const status = document.getElementById("filterStatus").value;
-        const params = new URLSearchParams();
-
-        if (name) params.set("name", name);
-        if (voucher) params.set("voucher", voucher);
-        if (rootFolderId) params.set("rootFolderId", rootFolderId);
-        if (status) params.set("status", status);
-
-        const query = params.toString();
-        const url = query
-          ? `${API_BASE}/api/documents?${query}`
-          : `${API_BASE}/api/documents`;
-        const res = await fetch(url, { credentials: "include" });
-        const docs = await res.json();
-
-        renderDocuments(Array.isArray(docs) ? docs : []);
-      }
-
-      function clearDocumentsList() {
-        document.getElementById("documentsList").innerHTML = "";
-        document.getElementById("documentsHint").textContent =
-          'Los documentos aparecerán cuando pulses "Buscar".';
-      }
-
-      function normalizeDocumentStatus(status) {
-        return status === "active" ? "available" : status || "pending";
-      }
-
-      function getStatusBadge(status) {
-        const normalizedStatus = normalizeDocumentStatus(status);
-        const meta =
-          DOCUMENT_STATUS[normalizedStatus] || DOCUMENT_STATUS.pending;
-        return `<span class="status-badge" style="background:${meta.background};color:${meta.color};border-color:${meta.border};">${meta.label}</span>`;
-      }
-
-      function renderDocuments(docs) {
-        const list = document.getElementById("documentsList");
-        const hint = document.getElementById("documentsHint");
-
-        list.innerHTML = "";
-
-        if (!docs.length) {
-          hint.textContent =
-            "No se encontraron documentos para los criterios ingresados.";
-          return;
-        }
-
-        hint.textContent = `Resultados: ${docs.length}`;
-        const table = document.createElement("div");
-        table.className = "documents-table-wrapper";
-        table.innerHTML = `
-        <table class="documents-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Comprobante</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${docs
-              .map(
-                (doc) => `
-              <tr>
-                <td>${escapeHtml(doc.original_name || "")}</td>
-                <td>${escapeHtml(doc.voucher_number || "Sin voucher")}</td>
-                <td>${getStatusBadge(doc.status)}</td>
-                <td>
-                  <div class="documents-actions">
-                    <button onclick="viewDetail(${doc.id})">Ver Detalle</button>
-                    <button onclick="openDoc(${doc.id})">Abrir</button>
-                    <button onclick="viewHistory(${doc.id})">Ver Historial</button>
-                  </div>
-                </td>
-              </tr>
-            `,
-              )
-              .join("")}
-          </tbody>
-        </table>
-      `;
-
-        list.appendChild(table);
-      }
-
-      function escapeHtml(value) {
-        return String(value)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
       }
 
       function setUserActionMessage(message, type = "info", options = {}) {
         if (!message) {
           return;
         }
+
         const defaults =
           type === "error"
             ? { duration: 7000, closable: true }
             : { duration: 4000, closable: true };
+
         window.appNotifier?.show(message, {
           type,
           ...defaults,
@@ -300,32 +130,88 @@
         });
       }
 
+      async function handleDocumentSearch() {
+        await searchDocuments();
+      }
+
+      async function searchDocuments() {
+        const query = window.documentUi.buildDocumentQuery({
+          name: document.getElementById("filterName").value,
+          voucher: document.getElementById("filterVoucher").value,
+          status: document.getElementById("filterStatus").value,
+        });
+
+        const url = query
+          ? `${API_BASE}/api/documents?${query}`
+          : `${API_BASE}/api/documents`;
+        const response = await fetch(url, { credentials: "include" });
+        const documents = await response.json().catch(() => []);
+
+        renderDocuments(Array.isArray(documents) ? documents : []);
+      }
+
+      function clearDocumentsList() {
+        window.documentUi.clearDocumentsList({
+          list: "documentsList",
+          hint: "documentsHint",
+          initialMessage: 'Los documentos aparecerán cuando pulses "Buscar".',
+        });
+      }
+
+      function renderDocuments(documents) {
+        window.documentUi.renderDocuments({
+          list: document.getElementById("documentsList"),
+          hint: document.getElementById("documentsHint"),
+          docs: documents,
+          actions: USER_DOCUMENT_ACTIONS,
+        });
+      }
+
+      async function handleDocumentAction({ action, id }) {
+        if (!Number.isInteger(id)) {
+          return;
+        }
+
+        if (action === "detail") {
+          await viewDetail(id);
+          return;
+        }
+
+        if (action === "open") {
+          await openDoc(id);
+          return;
+        }
+
+        if (action === "history") {
+          await viewHistory(id);
+        }
+      }
+
       async function viewDetail(id) {
         try {
-          const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+          const response = await fetch(`${API_BASE}/api/documents/${id}`, {
             credentials: "include",
           });
-          const doc = await res.json();
+          const documentData = await response.json().catch(() => ({}));
 
-          if (!res.ok) {
-            throw new Error(doc.message || "No se pudo cargar el detalle.");
+          if (!response.ok) {
+            throw new Error(documentData.message || "No se pudo cargar el detalle.");
           }
 
-          window.documentDialogs.showDocumentDetail(doc);
+          window.documentDialogs.showDocumentDetail(documentData);
         } catch (error) {
           setUserActionMessage(error.message, "error");
         }
       }
 
       async function openDoc(id) {
-        setUserActionMessage("");
-        const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
+        const response = await fetch(`${API_BASE}/api/documents/${id}/open`, {
           method: "POST",
           credentials: "include",
         });
-        const data = await res.json();
+        const data = await response.json().catch(() => ({}));
 
-        if (!res.ok || !data.success) {
+        if (!response.ok || !data.success) {
           setUserActionMessage(
             data.message || "No se pudo abrir el archivo.",
             "error",
@@ -340,18 +226,16 @@
 
       async function viewHistory(id) {
         try {
-          const res = await fetch(`${API_BASE}/api/documents/${id}/history`, {
+          const response = await fetch(`${API_BASE}/api/documents/${id}/history`, {
             credentials: "include",
           });
-          const history = await res.json();
+          const history = await response.json().catch(() => ({}));
 
-          if (!res.ok) {
+          if (!response.ok) {
             throw new Error(history.message || "No se pudo cargar el historial.");
           }
 
-          window.documentDialogs.showHistory(
-            Array.isArray(history) ? history : [],
-          );
+          window.documentDialogs.showHistory(Array.isArray(history) ? history : []);
         } catch (error) {
           setUserActionMessage(error.message, "error");
         }

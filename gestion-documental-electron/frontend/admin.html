@@ -6,79 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel Admin</title>
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .container {
-        max-width: 1100px;
-      }
-
-      .documents-table-wrapper {
-        overflow-x: auto;
-        margin-top: 12px;
-      }
-
-      .documents-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-      }
-
-      .documents-table th,
-      .documents-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        text-align: left;
-        vertical-align: middle;
-      }
-
-      .documents-table th {
-        color: #146c2e;
-        background: #ecfdf3;
-        font-weight: 600;
-      }
-
-      .documents-table td:last-child {
-        min-width: 220px;
-      }
-
-      .documents-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .documents-actions button {
-        width: auto;
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-
-      .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 12px;
-        border: 1px solid transparent;
-        white-space: nowrap;
-      }
-    </style>
   </head>
   <body>
-    <div class="container">
+    <div class="container page-container-wide">
       <div class="page-header">
         <div class="brand">
           <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
           <h1 class="brand-title">Panel Admin</h1>
         </div>
       </div>
+
       <div class="card">
         <p>Bienvenido, <strong id="userName"></strong> (admin)</p>
-        <button id="logoutBtn">Cerrar sesión</button>
+        <button id="logoutBtn" type="button">Cerrar sesión</button>
       </div>
 
       <div class="card">
-        <h2>Carpetas Raíz Documentales</h2>
+        <h2>Carpetas raíz documentales</h2>
         <form id="rootFolderForm">
           <input
             type="text"
@@ -100,41 +44,20 @@
           <input
             type="text"
             id="folderPath"
-            placeholder="Ruta absoluta (ej: D:\\doc marzo\\ARCHIVO)"
+            placeholder="Ruta absoluta (ej: D:\doc marzo\ARCHIVO)"
             readonly
             required
           />
-          <button type="submit">Agregar Carpeta</button>
+          <button type="submit">Agregar carpeta</button>
         </form>
-        <ul id="rootFoldersList"></ul>
+        <ul id="rootFoldersList" class="root-folders-list"></ul>
       </div>
 
       <div class="card">
         <h2>Indexación</h2>
-        <button id="indexBtn">Ejecutar Indexación</button>
-        <div
-          id="indexStatus"
-          style="
-            margin-top: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            border: 1px solid #86efac;
-            background: #ecfdf3;
-          "
-        >
-          <span
-            id="indexStatusDot"
-            style="
-              width: 10px;
-              height: 10px;
-              border-radius: 50%;
-              background: #1fa237;
-              display: inline-block;
-            "
-          ></span>
+        <button id="indexBtn" type="button">Ejecutar indexación</button>
+        <div id="indexStatus" class="index-status-pill">
+          <span id="indexStatusDot" class="index-status-dot"></span>
           <span id="indexStatusText">Indexación inactiva</span>
         </div>
       </div>
@@ -146,7 +69,7 @@
           <input
             type="text"
             id="filterVoucher"
-            placeholder="Número comprobante"
+            placeholder="Número de comprobante"
           />
           <select id="filterRootFolder">
             <option value="">Todas las carpetas</option>
@@ -155,20 +78,20 @@
             <option value="">Todos los estados</option>
             <option value="available">Disponible</option>
             <option value="updated">Actualizado</option>
-            <option value="missing">Missing</option>
+            <option value="missing">No encontrado</option>
             <option value="pending">Pendiente</option>
             <option value="error">Error</option>
           </select>
-          <button id="searchBtn">Buscar</button>
+          <button id="searchBtn" type="button">Buscar</button>
         </div>
-        <p id="documentsHint" style="margin-top: 12px; color: #146c2e">
+        <p id="documentsHint" class="documents-hint">
           Los documentos aparecerán cuando pulses "Buscar".
         </p>
         <div id="documentsList"></div>
       </div>
 
       <div class="card">
-        <h2>Crear Documento Nuevo</h2>
+        <h2>Crear documento nuevo</h2>
         <form id="createDocForm">
           <input
             type="text"
@@ -193,28 +116,34 @@
             id="docRelativePath"
             placeholder="Ruta relativa (opcional)"
           />
-          <select id="docRootFolder" required></select>
+          <select id="docRootFolder" required>
+            <option value="">Seleccionar carpeta</option>
+          </select>
           <input type="date" id="docDate" />
-          <input type="text" id="docVoucher" placeholder="Número comprobante" />
+          <input
+            type="text"
+            id="docVoucher"
+            placeholder="Número de comprobante"
+          />
           <input type="text" id="docCategory" placeholder="Categoría" />
           <input type="text" id="docType" placeholder="Tipo documental" />
           <textarea id="docNotes" placeholder="Notas"></textarea>
           <input type="text" id="docSourceArea" placeholder="Área de origen" />
-          <button type="submit">Crear Documento</button>
+          <button type="submit">Crear documento</button>
         </form>
       </div>
 
-      <div id="editModal" class="modal" style="display: none">
+      <div id="editModal" class="modal is-hidden">
         <div class="modal-content">
-          <span id="closeEdit">&times;</span>
-          <h2>Editar Documento</h2>
+          <span id="closeEdit" class="modal-close" role="button" tabindex="0">×</span>
+          <h2>Editar documento</h2>
           <form id="editDocForm">
             <input type="hidden" id="editDocId" />
             <input type="date" id="editDocDate" />
             <input
               type="text"
               id="editDocVoucher"
-              placeholder="Número comprobante"
+              placeholder="Número de comprobante"
             />
             <input type="text" id="editDocCategory" placeholder="Categoría" />
             <input type="text" id="editDocType" placeholder="Tipo documental" />
@@ -230,11 +159,13 @@
       </div>
     </div>
 
+    <script src="/app-config.js"></script>
     <script src="picker-utils.js"></script>
+    <script src="document-ui.js"></script>
     <script src="document-dialogs.js"></script>
     <script src="notifications.js"></script>
     <script>
-      const API_BASE = "http://localhost:3000";
+      const API_BASE = window.APP_CONFIG?.BASE_URL || window.location.origin;
       const INDEX_STATUS = {
         running: {
           color: "#16a34a",
@@ -261,39 +192,13 @@
           border: "#86efac",
         },
       };
-      const DOCUMENT_STATUS = {
-        available: {
-          label: "Disponible",
-          background: "#dcfce7",
-          color: "#166534",
-          border: "#86efac",
-        },
-        updated: {
-          label: "Actualizado",
-          background: "#fef3c7",
-          color: "#92400e",
-          border: "#fcd34d",
-        },
-        missing: {
-          label: "Missing",
-          background: "#fee2e2",
-          color: "#b91c1c",
-          border: "#fca5a5",
-        },
-        pending: {
-          label: "Pendiente",
-          background: "#e5e7eb",
-          color: "#4b5563",
-          border: "#d1d5db",
-        },
-        error: {
-          label: "Error",
-          background: "#ffedd5",
-          color: "#c2410c",
-          border: "#fdba74",
-        },
-      };
+      const ADMIN_DOCUMENT_ACTIONS = [
+        { key: "detail", label: "Ver detalle" },
+        { key: "open", label: "Abrir" },
+        { key: "edit", label: "Editar" },
+      ];
 
+      let adminPageInitialized = false;
       let currentEditId = null;
       let hasSearchedDocuments = false;
       let indexStatusPoller = null;
@@ -302,14 +207,16 @@
       window.addEventListener("DOMContentLoaded", setup);
 
       async function setup() {
+        if (adminPageInitialized) {
+          return;
+        }
+
+        adminPageInitialized = true;
+
         document.getElementById("logoutBtn").addEventListener("click", logout);
         document
           .getElementById("rootFolderForm")
           .addEventListener("submit", handleRootFolderSubmit);
-        window.pickerUtils.bindPickerTrigger(
-          "pickRootFolderBtn",
-          "rootFolderPicker",
-        );
         document
           .getElementById("rootFolderPicker")
           .addEventListener("change", handleRootFolderSelection);
@@ -322,7 +229,6 @@
         document
           .getElementById("createDocForm")
           .addEventListener("submit", handleCreateDocument);
-        window.pickerUtils.bindPickerTrigger("pickDocFileBtn", "docFile");
         document
           .getElementById("docFile")
           .addEventListener("change", handleDocumentFileSelection);
@@ -336,36 +242,34 @@
           .getElementById("editDocForm")
           .addEventListener("submit", handleEditDocument);
 
+        window.pickerUtils.bindPickerTrigger("pickRootFolderBtn", "rootFolderPicker");
+        window.pickerUtils.bindPickerTrigger("pickDocFileBtn", "docFile");
+        bindRootFolderActions();
+        window.documentUi.bindDelegatedClicks("documentsList", handleDocumentAction);
         clearDocumentsList();
+
         await authAndInit();
       }
 
       async function authAndInit() {
         try {
-          const res = await fetch(`${API_BASE}/api/protected/me`, {
+          const response = await fetch(`${API_BASE}/api/protected/me`, {
             credentials: "include",
           });
 
-          if (res.status === 401) {
+          if (response.status === 401 || !response.ok) {
             window.location.href = "index.html";
             return;
           }
 
-          if (!res.ok) {
-            window.location.href = "index.html";
-            return;
-          }
-
-          const body = await res.json();
+          const body = await response.json();
           if (body.user?.role !== "admin") {
             window.location.href = "user.html";
             return;
           }
 
-          document.getElementById("userName").innerText =
-            body.user?.name || "Admin";
+          document.getElementById("userName").textContent = body.user?.name || "Admin";
           await loadRootFolders();
-          await loadRootFoldersForSelect();
           await refreshIndexingStatus();
         } catch (error) {
           console.error("Error auth/admin:", error);
@@ -381,11 +285,31 @@
         window.location.href = "index.html";
       }
 
+      function showToast(message, type = "info", options = {}) {
+        if (!message) {
+          return;
+        }
+
+        const defaults =
+          type === "error"
+            ? { duration: 7000, closable: true }
+            : { duration: 4000, closable: true };
+
+        window.appNotifier?.show(message, {
+          type,
+          ...defaults,
+          ...options,
+        });
+      }
+
+      function setAdminActionMessage(message, type = "info", options = {}) {
+        showToast(message, type, options);
+      }
+
       async function handleRootFolderSubmit(event) {
         event.preventDefault();
-        setAdminActionMessage("");
-        const name = document.getElementById("folderName").value;
-        const absolutePath = document.getElementById("folderPath").value;
+        const name = document.getElementById("folderName").value.trim();
+        const absolutePath = document.getElementById("folderPath").value.trim();
 
         const response = await fetch(`${API_BASE}/api/root-folders`, {
           method: "POST",
@@ -407,7 +331,6 @@
         document.getElementById("pickedRootFolderLabel").textContent =
           "Ninguna carpeta seleccionada";
         await loadRootFolders();
-        await loadRootFoldersForSelect();
         setAdminActionMessage("Carpeta raíz agregada exitosamente.", "success");
       }
 
@@ -433,18 +356,178 @@
         }
       }
 
+      async function loadRootFolders() {
+        const response = await fetch(`${API_BASE}/api/root-folders`, {
+          credentials: "include",
+        });
+        const folders = await response.json().catch(() => []);
+
+        currentRootFolders = Array.isArray(folders) ? folders : [];
+        renderRootFolders();
+        syncRootFolderSelects();
+      }
+
+      function renderRootFolders() {
+        const list = document.getElementById("rootFoldersList");
+
+        if (!currentRootFolders.length) {
+          list.innerHTML =
+            '<li class="root-folder-item">No hay carpetas raíz registradas.</li>';
+          return;
+        }
+
+        list.innerHTML = currentRootFolders
+          .map((folder) => {
+            const name = window.documentUi.escapeHtml(folder.name || "");
+            const absolutePath = window.documentUi.escapeHtml(folder.absolute_path || "");
+            const stateLabel = folder.is_active ? "Activa" : "Inactiva";
+            const stateClass = folder.is_active ? "success" : "warning";
+            const toggleLabel = folder.is_active ? "Desactivar" : "Activar";
+
+            return `
+              <li class="root-folder-item">
+                <div class="root-folder-meta">
+                  <strong class="root-folder-name">${name}</strong>
+                  <span class="root-folder-path">${absolutePath}</span>
+                </div>
+                <div class="root-folder-actions">
+                  <span class="root-folder-state status-badge status-${stateClass}">
+                    ${stateLabel}
+                  </span>
+                  <button
+                    type="button"
+                    data-folder-action="toggle"
+                    data-folder-id="${folder.id}"
+                    data-folder-next-state="${folder.is_active ? "false" : "true"}"
+                  >
+                    ${toggleLabel}
+                  </button>
+                  <button
+                    type="button"
+                    data-folder-action="delete"
+                    data-folder-id="${folder.id}"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            `;
+          })
+          .join("");
+      }
+
+      function bindRootFolderActions() {
+        const list = document.getElementById("rootFoldersList");
+
+        if (!list || list.dataset.boundClick === "true") {
+          return;
+        }
+
+        list.dataset.boundClick = "true";
+        list.addEventListener("click", async (event) => {
+          const button = event.target.closest("[data-folder-action]");
+          if (!button) {
+            return;
+          }
+
+          const folderId = Number.parseInt(button.dataset.folderId, 10);
+          if (!Number.isInteger(folderId)) {
+            return;
+          }
+
+          if (button.dataset.folderAction === "toggle") {
+            await toggleFolder(folderId, button.dataset.folderNextState === "true");
+            return;
+          }
+
+          if (button.dataset.folderAction === "delete") {
+            await deleteFolder(folderId);
+          }
+        });
+      }
+
+      function syncRootFolderSelects() {
+        const createSelect = document.getElementById("docRootFolder");
+        const filterSelect = document.getElementById("filterRootFolder");
+        const selectedCreate = createSelect.value;
+        const selectedFilter = filterSelect.value;
+
+        createSelect.innerHTML = '<option value="">Seleccionar carpeta</option>';
+        filterSelect.innerHTML = '<option value="">Todas las carpetas</option>';
+
+        currentRootFolders.forEach((folder) => {
+          const name = folder.is_active ? folder.name : `${folder.name} (inactiva)`;
+          const optionMarkup = `<option value="${folder.id}">${window.documentUi.escapeHtml(
+            name,
+          )}</option>`;
+
+          createSelect.insertAdjacentHTML("beforeend", optionMarkup);
+          filterSelect.insertAdjacentHTML("beforeend", optionMarkup);
+        });
+
+        if ([...createSelect.options].some((option) => option.value === selectedCreate)) {
+          createSelect.value = selectedCreate;
+        }
+
+        if ([...filterSelect.options].some((option) => option.value === selectedFilter)) {
+          filterSelect.value = selectedFilter;
+        }
+      }
+
+      async function toggleFolder(id, active) {
+        const response = await fetch(`${API_BASE}/api/root-folders/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ isActive: active }),
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo actualizar la carpeta raíz.",
+            "error",
+          );
+          return;
+        }
+
+        await loadRootFolders();
+        setAdminActionMessage(
+          `Carpeta raíz ${active ? "activada" : "desactivada"} exitosamente.`,
+          "success",
+        );
+      }
+
+      async function deleteFolder(id) {
+        const response = await fetch(`${API_BASE}/api/root-folders/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setAdminActionMessage(
+            result.message || "No se pudo eliminar la carpeta raíz.",
+            "error",
+          );
+          return;
+        }
+
+        await loadRootFolders();
+        setAdminActionMessage("Carpeta raíz eliminada exitosamente.", "success");
+      }
+
       async function handleIndexingRun() {
-        setAdminActionMessage("");
         setIndexStatus("running");
 
         try {
-          const res = await fetch(`${API_BASE}/api/indexing/run`, {
+          const response = await fetch(`${API_BASE}/api/indexing/run`, {
             method: "POST",
             credentials: "include",
           });
 
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) {
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
             throw new Error(data.message || "No se pudo iniciar la indexación");
           }
 
@@ -467,14 +550,15 @@
 
       async function refreshIndexingStatus() {
         try {
-          const res = await fetch(`${API_BASE}/api/indexing/runs`, {
+          const response = await fetch(`${API_BASE}/api/indexing/runs`, {
             credentials: "include",
           });
-          if (!res.ok) {
+
+          if (!response.ok) {
             throw new Error("No se pudo consultar el estado de indexación");
           }
 
-          const runs = await res.json();
+          const runs = await response.json();
           const latestRun =
             Array.isArray(runs) && runs.length > 0 ? runs[0] : null;
 
@@ -511,10 +595,12 @@
       }
 
       function stopIndexStatusPolling() {
-        if (indexStatusPoller) {
-          window.clearInterval(indexStatusPoller);
-          indexStatusPoller = null;
+        if (!indexStatusPoller) {
+          return;
         }
+
+        window.clearInterval(indexStatusPoller);
+        indexStatusPoller = null;
       }
 
       function setIndexStatus(statusKey, detail = "") {
@@ -530,226 +616,63 @@
         text.textContent = `${status.text}${suffix}`;
       }
 
-      async function loadRootFolders() {
-        const res = await fetch(`${API_BASE}/api/root-folders`, {
-          credentials: "include",
-        });
-        const folders = await res.json();
-        const list = document.getElementById("rootFoldersList");
-
-        currentRootFolders = Array.isArray(folders) ? folders : [];
-        list.innerHTML = "";
-
-        currentRootFolders.forEach((folder) => {
-          const li = document.createElement("li");
-          li.innerHTML = `${folder.name}: ${folder.absolute_path} (${folder.is_active ? "Activa" : "Inactiva"})
-          <button onclick="toggleFolder(${folder.id}, ${!folder.is_active})">${folder.is_active ? "Desactivar" : "Activar"}</button>
-          <button onclick="deleteFolder(${folder.id})">Eliminar</button>`;
-          list.appendChild(li);
-        });
-      }
-
-      async function loadRootFoldersForSelect() {
-        const res = await fetch(`${API_BASE}/api/root-folders`, {
-          credentials: "include",
-        });
-        const folders = await res.json();
-        const docRootFolder = document.getElementById("docRootFolder");
-        const filterRootFolder = document.getElementById("filterRootFolder");
-
-        docRootFolder.innerHTML =
-          '<option value="">Seleccionar carpeta</option>';
-        filterRootFolder.innerHTML =
-          '<option value="">Todas las carpetas</option>';
-
-        folders.forEach((folder) => {
-          docRootFolder.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
-          filterRootFolder.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
-        });
-      }
-
-      async function toggleFolder(id, active) {
-        setAdminActionMessage("");
-        const folder = currentRootFolders.find((item) => item.id === id);
-        if (!folder) {
-          setAdminActionMessage("No se pudo identificar la carpeta raíz.", "error");
-          return;
-        }
-
-        const response = await fetch(`${API_BASE}/api/root-folders/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            name: folder.name,
-            absolutePath: folder.absolute_path,
-            isActive: active,
-          }),
-        });
-
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          setAdminActionMessage(
-            result.message || "No se pudo actualizar la carpeta raíz.",
-            "error",
-          );
-          return;
-        }
-
-        await loadRootFolders();
-        await loadRootFoldersForSelect();
-        setAdminActionMessage(
-          `Carpeta raíz ${active ? "activada" : "desactivada"} exitosamente.`,
-          "success",
-        );
-      }
-
-      async function deleteFolder(id) {
-        setAdminActionMessage("");
-        const response = await fetch(`${API_BASE}/api/root-folders/${id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          setAdminActionMessage(
-            result.message || "No se pudo eliminar la carpeta raíz.",
-            "error",
-          );
-          return;
-        }
-
-        await loadRootFolders();
-        await loadRootFoldersForSelect();
-        setAdminActionMessage("Carpeta raíz eliminada exitosamente.", "success");
-      }
-
       async function handleDocumentSearch() {
         hasSearchedDocuments = true;
         await searchDocuments();
       }
 
       async function searchDocuments() {
-        const name = document.getElementById("filterName").value.trim();
-        const voucher = document.getElementById("filterVoucher").value.trim();
-        const rootFolderId = document.getElementById("filterRootFolder").value;
-        const status = document.getElementById("filterStatus").value;
-        const params = new URLSearchParams();
+        const query = window.documentUi.buildDocumentQuery({
+          name: document.getElementById("filterName").value,
+          voucher: document.getElementById("filterVoucher").value,
+          rootFolderId: document.getElementById("filterRootFolder").value,
+          status: document.getElementById("filterStatus").value,
+        });
 
-        if (name) params.set("name", name);
-        if (voucher) params.set("voucher", voucher);
-        if (rootFolderId) params.set("rootFolderId", rootFolderId);
-        if (status) params.set("status", status);
-
-        const query = params.toString();
         const url = query
           ? `${API_BASE}/api/documents?${query}`
           : `${API_BASE}/api/documents`;
-        const res = await fetch(url, { credentials: "include" });
-        const docs = await res.json();
+        const response = await fetch(url, { credentials: "include" });
+        const documents = await response.json().catch(() => []);
 
-        renderDocuments(Array.isArray(docs) ? docs : []);
+        renderDocuments(Array.isArray(documents) ? documents : []);
       }
 
       function clearDocumentsList() {
-        document.getElementById("documentsList").innerHTML = "";
-        document.getElementById("documentsHint").textContent =
-          'Los documentos aparecerán cuando pulses "Buscar".';
-      }
-
-      function normalizeDocumentStatus(status) {
-        return status === "active" ? "available" : status || "pending";
-      }
-
-      function getStatusBadge(status) {
-        const normalizedStatus = normalizeDocumentStatus(status);
-        const meta =
-          DOCUMENT_STATUS[normalizedStatus] || DOCUMENT_STATUS.pending;
-        return `<span class="status-badge" style="background:${meta.background};color:${meta.color};border-color:${meta.border};">${meta.label}</span>`;
-      }
-
-      function renderDocuments(docs) {
-        const list = document.getElementById("documentsList");
-        const hint = document.getElementById("documentsHint");
-
-        list.innerHTML = "";
-
-        if (!docs.length) {
-          hint.textContent =
-            "No se encontraron documentos para los criterios ingresados.";
-          return;
-        }
-
-        hint.textContent = `Resultados: ${docs.length}`;
-        const table = document.createElement("div");
-        table.className = "documents-table-wrapper";
-        table.innerHTML = `
-        <table class="documents-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Comprobante</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${docs
-              .map(
-                (doc) => `
-              <tr>
-                <td>${escapeHtml(doc.original_name || "")}</td>
-                <td>${escapeHtml(doc.voucher_number || "Sin voucher")}</td>
-                <td>${getStatusBadge(doc.status)}</td>
-                <td>
-                  <div class="documents-actions">
-                    <button onclick="viewDetail(${doc.id})">Ver Detalle</button>
-                    <button onclick="openDoc(${doc.id})">Abrir</button>
-                    <button onclick="editDoc(${doc.id})">Editar</button>
-                  </div>
-                </td>
-              </tr>
-            `,
-              )
-              .join("")}
-          </tbody>
-        </table>
-      `;
-
-        list.appendChild(table);
-      }
-
-      function escapeHtml(value) {
-        return String(value)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
-      }
-
-      function showToast(message, type = "info", options = {}) {
-        if (!message) {
-          return;
-        }
-        const defaults =
-          type === "error"
-            ? { duration: 7000, closable: true }
-            : { duration: 4000, closable: true };
-        window.appNotifier?.show(message, {
-          type,
-          ...defaults,
-          ...options,
+        window.documentUi.clearDocumentsList({
+          list: "documentsList",
+          hint: "documentsHint",
+          initialMessage: 'Los documentos aparecerán cuando pulses "Buscar".',
         });
       }
 
-      function setCreateDocumentMessage(message, type = "info", options = {}) {
-        showToast(message, type, options);
+      function renderDocuments(documents) {
+        window.documentUi.renderDocuments({
+          list: document.getElementById("documentsList"),
+          hint: document.getElementById("documentsHint"),
+          docs: documents,
+          actions: ADMIN_DOCUMENT_ACTIONS,
+        });
       }
 
-      function setAdminActionMessage(message, type = "info", options = {}) {
-        showToast(message, type, options);
+      async function handleDocumentAction({ action, id }) {
+        if (!Number.isInteger(id)) {
+          return;
+        }
+
+        if (action === "detail") {
+          await viewDetail(id);
+          return;
+        }
+
+        if (action === "open") {
+          await openDoc(id);
+          return;
+        }
+
+        if (action === "edit") {
+          await editDoc(id);
+        }
       }
 
       function handleDocumentFileSelection(event) {
@@ -788,7 +711,6 @@
         const selectedRootFolder = currentRootFolders.find(
           (folder) => String(folder.id) === String(rootFolderSelect.value),
         );
-
         const absolutePath = selectedFile.path || "";
         const rootAbsolutePath = selectedRootFolder?.absolute_path || "";
 
@@ -805,9 +727,11 @@
 
       async function handleCreateDocument(event) {
         event.preventDefault();
-        setCreateDocumentMessage("");
 
         const rootFolderSelect = document.getElementById("docRootFolder");
+        const selectedRootFolder = currentRootFolders.find(
+          (folder) => String(folder.id) === String(rootFolderSelect.value),
+        );
         const selectedFile = document.getElementById("docFile").files?.[0];
         const absolutePath =
           selectedFile?.path || document.getElementById("docPath").value;
@@ -816,13 +740,13 @@
         const fileExtension = selectedFile?.name?.includes(".")
           ? `.${selectedFile.name.split(".").pop().toLowerCase()}`
           : "";
-        const data = {
+
+        const payload = {
           originalName,
           absolutePath,
           relativePath: document.getElementById("docRelativePath").value,
           rootFolderId: rootFolderSelect.value,
-          rootFolderName:
-            rootFolderSelect.options[rootFolderSelect.selectedIndex].text,
+          rootFolderName: selectedRootFolder?.name || "",
           fileExtension,
           documentDate: document.getElementById("docDate").value,
           voucherNumber: document.getElementById("docVoucher").value,
@@ -836,20 +760,19 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         });
 
         const result = await response.json().catch(() => ({}));
-
         if (!response.ok) {
-          setCreateDocumentMessage(
+          setAdminActionMessage(
             result.message || "No se pudo crear el documento.",
             "error",
           );
           return;
         }
 
-        setCreateDocumentMessage(
+        setAdminActionMessage(
           "Archivo subido y documento creado exitosamente.",
           "success",
           { duration: 5000 },
@@ -868,32 +791,42 @@
 
       async function editDoc(id) {
         currentEditId = id;
-        const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+        const response = await fetch(`${API_BASE}/api/documents/${id}`, {
           credentials: "include",
         });
-        const doc = await res.json();
+        const documentData = await response.json().catch(() => ({}));
 
-        document.getElementById("editDocId").value = doc.id;
-        document.getElementById("editDocDate").value = doc.document_date || "";
+        if (!response.ok) {
+          setAdminActionMessage(
+            documentData.message || "No se pudo cargar el documento.",
+            "error",
+          );
+          return;
+        }
+
+        document.getElementById("editDocId").value = documentData.id;
+        document.getElementById("editDocDate").value =
+          documentData.document_date || "";
         document.getElementById("editDocVoucher").value =
-          doc.voucher_number || "";
-        document.getElementById("editDocCategory").value = doc.category || "";
-        document.getElementById("editDocType").value = doc.document_type || "";
-        document.getElementById("editDocNotes").value = doc.notes || "";
+          documentData.voucher_number || "";
+        document.getElementById("editDocCategory").value =
+          documentData.category || "";
+        document.getElementById("editDocType").value =
+          documentData.document_type || "";
+        document.getElementById("editDocNotes").value = documentData.notes || "";
         document.getElementById("editDocSourceArea").value =
-          doc.source_area || "";
-        document.getElementById("editModal").style.display = "block";
+          documentData.source_area || "";
+        document.getElementById("editModal").classList.remove("is-hidden");
       }
 
       function closeEditModal() {
-        document.getElementById("editModal").style.display = "none";
+        document.getElementById("editModal").classList.add("is-hidden");
       }
 
       async function handleEditDocument(event) {
         event.preventDefault();
-        setAdminActionMessage("");
 
-        const data = {
+        const payload = {
           document_date: document.getElementById("editDocDate").value,
           voucher_number: document.getElementById("editDocVoucher").value,
           category: document.getElementById("editDocCategory").value,
@@ -906,7 +839,7 @@
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         });
 
         const result = await response.json().catch(() => ({}));
@@ -928,30 +861,29 @@
 
       async function viewDetail(id) {
         try {
-          const res = await fetch(`${API_BASE}/api/documents/${id}`, {
+          const response = await fetch(`${API_BASE}/api/documents/${id}`, {
             credentials: "include",
           });
-          const doc = await res.json();
+          const documentData = await response.json().catch(() => ({}));
 
-          if (!res.ok) {
-            throw new Error(doc.message || "No se pudo cargar el detalle.");
+          if (!response.ok) {
+            throw new Error(documentData.message || "No se pudo cargar el detalle.");
           }
 
-          window.documentDialogs.showDocumentDetail(doc);
+          window.documentDialogs.showDocumentDetail(documentData);
         } catch (error) {
           setAdminActionMessage(error.message, "error");
         }
       }
 
       async function openDoc(id) {
-        setAdminActionMessage("");
-        const res = await fetch(`${API_BASE}/api/documents/${id}/open`, {
+        const response = await fetch(`${API_BASE}/api/documents/${id}/open`, {
           method: "POST",
           credentials: "include",
         });
-        const data = await res.json();
+        const data = await response.json().catch(() => ({}));
 
-        if (!res.ok || !data.success) {
+        if (!response.ok || !data.success) {
           setAdminActionMessage(
             data.message || "No se pudo abrir el archivo.",
             "error",
