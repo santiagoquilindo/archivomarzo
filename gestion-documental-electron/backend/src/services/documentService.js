@@ -2,6 +2,16 @@ const { db } = require('../db/db');
 const crypto = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
+const { AppError } = require('../utils/http');
+
+const EDITABLE_FIELDS = new Set([
+  'document_date',
+  'voucher_number',
+  'category',
+  'document_type',
+  'notes',
+  'source_area',
+]);
 
 function calculateFileHash(filePath) {
   return new Promise((resolve, reject) => {
@@ -96,7 +106,11 @@ function ensurePathInsideRoot(rootPath, targetPath) {
   }
 
   if (!resolvedTarget.startsWith(`${resolvedRoot}${path.sep}`)) {
-    throw new Error('La ruta relativa queda por fuera de la carpeta raíz seleccionada');
+    throw new AppError(
+      'La ruta relativa queda por fuera de la carpeta raíz seleccionada',
+      400,
+      'PATH_OUTSIDE_ROOT',
+    );
   }
 
   return resolvedTarget;
@@ -111,7 +125,10 @@ async function getAvailableDestinationPath(destinationPath) {
     try {
       await fs.access(candidatePath);
       attempt += 1;
-      candidatePath = path.join(parsed.dir, `${parsed.name}-${attempt}${parsed.ext}`);
+      candidatePath = path.join(
+        parsed.dir,
+        `${parsed.name}-${attempt}${parsed.ext}`,
+      );
     } catch (error) {
       if (error.code === 'ENOENT') {
         return candidatePath;
@@ -122,26 +139,57 @@ async function getAvailableDestinationPath(destinationPath) {
   }
 }
 
+function addDocumentHistoryEntry(
+  documentId,
+  action,
+  userId,
+  fieldName = null,
+  newValue = null,
+) {
+  return new Promise((resolve, reject) => {
+    const performedAt = new Date().toISOString();
+    db.run(
+      'INSERT INTO document_history (document_id, action, field_name, new_value, performed_by, performed_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [documentId, action, fieldName, newValue, userId, performedAt],
+      function(err) {
+        if (err) return reject(err);
+        resolve({ id: this.lastID });
+      },
+    );
+  });
+}
+
 function createDocument(docData, userId) {
   return new Promise(async (resolve, reject) => {
     try {
       const sourcePath = path.resolve(docData.absolutePath);
-      const sourceStats = await fs.stat(sourcePath);
+      await fs.stat(sourcePath);
       const sourceFileName = path.basename(sourcePath);
       const rootFolder = await getRootFolderById(docData.rootFolderId);
 
       if (!rootFolder) {
-        throw new Error('La carpeta raíz seleccionada no existe');
+        throw new AppError(
+          'La carpeta raíz seleccionada no existe',
+          404,
+          'ROOT_FOLDER_NOT_FOUND',
+        );
       }
 
       const rootFolderPath = path.resolve(rootFolder.absolute_path);
-      const desiredRelativePath = normalizeRelativePath(docData.relativePath, sourceFileName);
+      const desiredRelativePath = normalizeRelativePath(
+        docData.relativePath,
+        sourceFileName,
+      );
       const requestedDestination = ensurePathInsideRoot(
         rootFolderPath,
-        path.resolve(rootFolderPath, desiredRelativePath)
+        path.resolve(rootFolderPath, desiredRelativePath),
       );
-      const finalDestinationPath = await getAvailableDestinationPath(requestedDestination);
-      const finalRelativePath = path.relative(rootFolderPath, finalDestinationPath);
+      const finalDestinationPath =
+        await getAvailableDestinationPath(requestedDestination);
+      const finalRelativePath = path.relative(
+        rootFolderPath,
+        finalDestinationPath,
+      );
 
       await fs.mkdir(path.dirname(finalDestinationPath), { recursive: true });
       await fs.copyFile(sourcePath, finalDestinationPath);
@@ -149,40 +197,59 @@ function createDocument(docData, userId) {
       const hash = await calculateFileHash(finalDestinationPath);
       const stats = await fs.stat(finalDestinationPath);
       const createdAt = new Date().toISOString();
-      const updatedAt = createdAt;
-      const fileExtension = docData.fileExtension || path.extname(finalDestinationPath).toLowerCase();
+      const fileExtension =
+        docData.fileExtension ||
+        path.extname(finalDestinationPath).toLowerCase();
       const storedName = path.basename(finalDestinationPath);
-      const rootFolderName = rootFolder.name;
 
-      db.run(`
+      db.run(
+        `
         INSERT INTO documents (
           original_name, stored_name, absolute_path, relative_path, root_folder_id, root_folder_name,
           file_extension, file_size, file_hash, file_modified_at, document_date, voucher_number,
           category, document_type, notes, source_area, status, created_by, updated_by, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        docData.originalName, storedName, finalDestinationPath, finalRelativePath,
-        rootFolder.id, rootFolderName, fileExtension, stats.size, hash,
-        stats.mtime.toISOString(), docData.documentDate, docData.voucherNumber, docData.category,
-        docData.documentType, docData.notes, docData.sourceArea, 'pending', userId, userId, createdAt, updatedAt
-      ], function(err) {
-        if (err) return reject(err);
-        const docId = this.lastID;
-        // Registrar en history
-        db.run(
-          'INSERT INTO document_history (document_id, action, performed_by, performed_at) VALUES (?, ?, ?, ?)',
-          [docId, 'created', userId, createdAt],
-          (err2) => {
-            if (err2) console.error('Error history:', err2);
+      `,
+        [
+          docData.originalName,
+          storedName,
+          finalDestinationPath,
+          finalRelativePath,
+          rootFolder.id,
+          rootFolder.name,
+          fileExtension,
+          stats.size,
+          hash,
+          stats.mtime.toISOString(),
+          docData.documentDate,
+          docData.voucherNumber,
+          docData.category,
+          docData.documentType,
+          docData.notes,
+          docData.sourceArea,
+          'pending',
+          userId,
+          userId,
+          createdAt,
+          createdAt,
+        ],
+        async function(err) {
+          if (err) return reject(err);
+
+          const docId = this.lastID;
+          try {
+            await addDocumentHistoryEntry(docId, 'created', userId);
             resolve({
               id: docId,
               absolutePath: finalDestinationPath,
               relativePath: finalRelativePath,
-              copiedFrom: sourcePath
+              copiedFrom: sourcePath,
             });
+          } catch (historyError) {
+            reject(historyError);
           }
-        );
-      });
+        },
+      );
     } catch (error) {
       reject(error);
     }
@@ -192,49 +259,74 @@ function createDocument(docData, userId) {
 function updateDocument(id, updates, userId) {
   return new Promise((resolve, reject) => {
     const updatedAt = new Date().toISOString();
-    const fields = Object.keys(updates).filter(k => k !== 'id');
-    const setClause = fields.map(f => `${f} = ?`).join(', ') + ', updated_at = ?, updated_by = ?';
-    const values = fields.map(f => updates[f]);
+    const fields = Object.keys(updates).filter((key) => EDITABLE_FIELDS.has(key));
+
+    if (!fields.length) {
+      reject(
+        new AppError(
+          'No hay campos válidos para actualizar',
+          400,
+          'NO_VALID_UPDATE_FIELDS',
+        ),
+      );
+      return;
+    }
+
+    const setClause =
+      fields.map((field) => `${field} = ?`).join(', ') +
+      ', updated_at = ?, updated_by = ?';
+    const values = fields.map((field) => updates[field]);
     values.push(updatedAt, userId, id);
 
-    db.run(`UPDATE documents SET ${setClause} WHERE id = ?`, values, function(err) {
-      if (err) return reject(err);
-      // Registrar cambios en history
-      const performedAt = new Date().toISOString();
-      const historyInserts = fields.map(field => {
-        return new Promise((res, rej) => {
-          db.run(
-            'INSERT INTO document_history (document_id, action, field_name, new_value, performed_by, performed_at) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, 'updated', field, updates[field], userId, performedAt],
-            (err2) => err2 ? rej(err2) : res()
-          );
-        });
-      });
-      Promise.all(historyInserts).then(() => resolve({ changes: this.changes })).catch(reject);
-    });
+    db.run(
+      `UPDATE documents SET ${setClause} WHERE id = ?`,
+      values,
+      function(err) {
+        if (err) return reject(err);
+
+        if (!this.changes) {
+          reject(new AppError('Documento no encontrado', 404, 'DOCUMENT_NOT_FOUND'));
+          return;
+        }
+
+        const historyInserts = fields.map((field) =>
+          addDocumentHistoryEntry(id, 'updated', userId, field, updates[field]),
+        );
+
+        Promise.all(historyInserts)
+          .then(() => resolve({ changes: this.changes }))
+          .catch(reject);
+      },
+    );
   });
 }
 
 function getDocumentHistory(documentId) {
   return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM document_history WHERE document_id = ? ORDER BY performed_at DESC', [documentId], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
+    db.all(
+      'SELECT * FROM document_history WHERE document_id = ? ORDER BY performed_at DESC',
+      [documentId],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
+      },
+    );
   });
 }
 
 function markDocumentMissing(id, userId) {
   return new Promise((resolve, reject) => {
     const performedAt = new Date().toISOString();
-    db.run('UPDATE documents SET status = ?, updated_at = ?, updated_by = ? WHERE id = ?', ['missing', performedAt, userId, id], function(err) {
-      if (err) return reject(err);
-      db.run(
-        'INSERT INTO document_history (document_id, action, performed_by, performed_at) VALUES (?, ?, ?, ?)',
-        [id, 'marked_missing', userId, performedAt],
-        (err2) => err2 ? reject(err2) : resolve({ changes: this.changes })
-      );
-    });
+    db.run(
+      'UPDATE documents SET status = ?, updated_at = ?, updated_by = ? WHERE id = ?',
+      ['missing', performedAt, userId, id],
+      function(err) {
+        if (err) return reject(err);
+        addDocumentHistoryEntry(id, 'marked_missing', userId)
+          .then(() => resolve({ changes: this.changes }))
+          .catch(reject);
+      },
+    );
   });
 }
 
@@ -245,5 +337,6 @@ module.exports = {
   updateDocument,
   getDocumentHistory,
   markDocumentMissing,
+  addDocumentHistoryEntry,
   calculateFileHash,
 };

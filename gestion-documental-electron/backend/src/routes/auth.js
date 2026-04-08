@@ -1,27 +1,50 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { findUserByUsername, verifyPassword } = require('../services/userService');
+const {
+  findUserByUsername,
+  verifyPassword,
+} = require('../services/userService');
 const { tokenSecret } = require('../middleware/authMiddleware');
+const {
+  AppError,
+  normalizeText,
+  sendError,
+  sendSuccess,
+} = require('../utils/http');
 
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const username = normalizeText(req.body?.username);
+  const password = normalizeText(req.body?.password);
+
   if (!username || !password) {
-    return res.status(400).json({ message: 'Usuario y contraseña son requeridos' });
+    return sendError(
+      res,
+      new AppError(
+        'Usuario y contraseña son requeridos',
+        400,
+        'MISSING_CREDENTIALS',
+      ),
+    );
   }
 
   try {
-    console.log('Login request body:', { username, password });
     const user = await findUserByUsername(username);
-    console.log('User fetched:', user);
+
     if (!user || user.status !== 'active') {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      return sendError(
+        res,
+        new AppError('Credenciales inválidas', 401, 'INVALID_CREDENTIALS'),
+      );
     }
 
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      return sendError(
+        res,
+        new AppError('Credenciales inválidas', 401, 'INVALID_CREDENTIALS'),
+      );
     }
 
     const payload = {
@@ -40,16 +63,16 @@ router.post('/login', async (req, res) => {
       maxAge: 1000 * 60 * 60 * 8,
     });
 
-    res.json({ message: 'Login exitoso', user: payload });
+    return sendSuccess(res, { message: 'Login exitoso', user: payload });
   } catch (error) {
-    console.error('Error login:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    console.error('Error login:', error.message);
+    return sendError(res, error, 'Error del servidor');
   }
 });
 
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
-  res.json({ message: 'Logout exitoso' });
+  return sendSuccess(res, { message: 'Logout exitoso' });
 });
 
 module.exports = router;

@@ -1,33 +1,41 @@
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 const { startIndexing, getIndexingRuns } = require('../services/indexingService');
+const { AppError, sendError, sendSuccess } = require('../utils/http');
 
 const router = express.Router();
 
 router.post('/run', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const runId = await startIndexing(req.user.id);
-    res.json({
+    return sendSuccess(res, {
       message: 'Indexación iniciada en segundo plano',
-      runId
+      runId,
     });
   } catch (error) {
     if (error.code === 'INDEXING_ALREADY_RUNNING') {
-      return res.status(409).json({ message: 'Ya existe una indexación en ejecución' });
+      return sendError(
+        res,
+        new AppError(
+          'Ya existe una indexación en ejecución',
+          409,
+          'INDEXING_ALREADY_RUNNING',
+        ),
+      );
     }
 
-    console.error('Start indexing error:', error);
-    res.status(500).json({ message: 'Error iniciando indexación' });
+    console.error('Start indexing error:', error.message);
+    return sendError(res, error, 'Error iniciando indexación');
   }
 });
 
 router.get('/runs', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const runs = await getIndexingRuns();
-    res.json(runs);
+    return res.json(runs);
   } catch (error) {
-    console.error('Get indexing runs error:', error);
-    res.status(500).json({ message: 'Error obteniendo corridas de indexación' });
+    console.error('Get indexing runs error:', error.message);
+    return sendError(res, error, 'Error obteniendo corridas de indexación');
   }
 });
 

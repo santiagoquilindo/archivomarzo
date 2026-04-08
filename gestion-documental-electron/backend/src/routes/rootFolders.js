@@ -1,57 +1,116 @@
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { getAllRootFolders, createRootFolder, updateRootFolder, deleteRootFolder } = require('../services/rootFolderService');
+const {
+  getAllRootFolders,
+  createRootFolder,
+  updateRootFolder,
+  deleteRootFolder,
+} = require('../services/rootFolderService');
+const {
+  AppError,
+  normalizeText,
+  parseId,
+  sendError,
+  sendSuccess,
+} = require('../utils/http');
 
 const router = express.Router();
 
 router.get('/', verifyToken, requireRole('admin'), async (req, res) => {
-  console.log('GET /api/root-folders', { user: req.user });
   try {
     const folders = await getAllRootFolders();
-    res.json(folders);
+    return res.json(folders);
   } catch (error) {
-    console.error('Get root folders error:', error);
-    res.status(500).json({ message: 'Error obteniendo carpetas raíz' });
+    console.error('Get root folders error:', error.message);
+    return sendError(res, error, 'Error obteniendo carpetas raíz');
   }
 });
 
 router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
-  const { name, absolutePath } = req.body;
+  const name = normalizeText(req.body?.name);
+  const absolutePath = normalizeText(req.body?.absolutePath);
+
   if (!name || !absolutePath) {
-    return res.status(400).json({ message: 'Nombre y ruta absoluta son requeridos' });
+    return sendError(
+      res,
+      new AppError(
+        'Nombre y ruta absoluta son requeridos',
+        400,
+        'MISSING_ROOT_FOLDER_FIELDS',
+      ),
+    );
   }
+
   try {
     const folder = await createRootFolder(name, absolutePath);
-    res.status(201).json(folder);
+    return sendSuccess(
+      res,
+      { message: 'Carpeta raíz creada', folder },
+      201,
+    );
   } catch (error) {
-    console.error('Create root folder error:', error);
-    res.status(500).json({ message: 'Error creando carpeta raíz' });
+    console.error('Create root folder error:', error.message);
+    return sendError(res, error, 'Error creando carpeta raíz');
   }
 });
 
 router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
-  const { id } = req.params;
-  const { name, absolutePath, isActive } = req.body;
-  if (!name || !absolutePath) {
-    return res.status(400).json({ message: 'Nombre y ruta absoluta son requeridos' });
-  }
   try {
-    await updateRootFolder(id, name, absolutePath, isActive);
-    res.json({ message: 'Carpeta raíz actualizada' });
+    const id = parseId(req.params.id);
+    const name = normalizeText(req.body?.name);
+    const absolutePath = normalizeText(req.body?.absolutePath);
+    const isActive = req.body?.isActive;
+
+    if (!name || !absolutePath) {
+      return sendError(
+        res,
+        new AppError(
+          'Nombre y ruta absoluta son requeridos',
+          400,
+          'MISSING_ROOT_FOLDER_FIELDS',
+        ),
+      );
+    }
+
+    if (typeof isActive !== 'boolean') {
+      return sendError(
+        res,
+        new AppError('isActive debe ser booleano', 400, 'INVALID_IS_ACTIVE'),
+      );
+    }
+
+    const result = await updateRootFolder(id, name, absolutePath, isActive);
+
+    if (!result.changes) {
+      return sendError(
+        res,
+        new AppError('Carpeta raíz no encontrada', 404, 'ROOT_FOLDER_NOT_FOUND'),
+      );
+    }
+
+    return sendSuccess(res, { message: 'Carpeta raíz actualizada' });
   } catch (error) {
-    console.error('Update root folder error:', error);
-    res.status(500).json({ message: 'Error actualizando carpeta raíz' });
+    console.error('Update root folder error:', error.message);
+    return sendError(res, error, 'Error actualizando carpeta raíz');
   }
 });
 
 router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
-  const { id } = req.params;
   try {
-    await deleteRootFolder(id);
-    res.json({ message: 'Carpeta raíz eliminada' });
+    const id = parseId(req.params.id);
+    const result = await deleteRootFolder(id);
+
+    if (!result.changes) {
+      return sendError(
+        res,
+        new AppError('Carpeta raíz no encontrada', 404, 'ROOT_FOLDER_NOT_FOUND'),
+      );
+    }
+
+    return sendSuccess(res, { message: 'Carpeta raíz eliminada' });
   } catch (error) {
-    console.error('Delete root folder error:', error);
-    res.status(500).json({ message: 'Error eliminando carpeta raíz' });
+    console.error('Delete root folder error:', error.message);
+    return sendError(res, error, 'Error eliminando carpeta raíz');
   }
 });
 
