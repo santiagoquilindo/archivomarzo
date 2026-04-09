@@ -8,7 +8,7 @@ const protectedRoutes = require('./routes/protected');
 const rootFolderRoutes = require('./routes/rootFolders');
 const documentRoutes = require('./routes/documents');
 const indexingRoutes = require('./routes/indexing');
-const { BASE_URL, FRONTEND_PUBLIC_CONFIG, PORT } = require('./config');
+const { BASE_URL, FRONTEND_PUBLIC_CONFIG, HOST, PORT } = require('./config');
 const { sendError } = require('./utils/http');
 
 const app = express();
@@ -24,6 +24,10 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
 ].join('; ');
+
+let databaseInitialized = false;
+let activeServer = null;
+let activeStartPromise = null;
 
 app.disable('x-powered-by');
 app.use((req, res, next) => {
@@ -63,8 +67,80 @@ app.use((err, req, res, next) => {
   sendError(res, err, 'Error interno del servidor');
 });
 
-initDatabase();
+function ensureDatabaseInitialized() {
+  if (!databaseInitialized) {
+    initDatabase();
+    databaseInitialized = true;
+  }
+}
 
-app.listen(PORT, () => {
-  console.log(`API local escuchando en ${BASE_URL}`);
-});
+function buildListenError(error, port) {
+  if (error?.code === 'EADDRINUSE') {
+    error.message = `El puerto ${port} ya está en uso`;
+  }
+
+  return error;
+}
+
+function startServer(options = {}) {
+  if (activeServer) {
+    return Promise.resolve(activeServer);
+  }
+
+  if (activeStartPromise) {
+    return activeStartPromise;
+  }
+
+  const port = Number.parseInt(options.port || PORT, 10);
+  const host = options.host || HOST;
+
+  ensureDatabaseInitialized();
+
+  activeStartPromise = new Promise((resolve, reject) => {
+    const server = app.listen(port, host, () => {
+      activeServer = server;
+      activeStartPromise = null;
+      console.log(`API local escuchando en http://${host}:${port}`);
+      resolve(server);
+    });
+
+    server.once('error', (error) => {
+      activeStartPromise = null;
+      reject(buildListenError(error, port));
+    });
+  });
+
+  return activeStartPromise;
+}
+
+function stopServer() {
+  if (!activeServer) {
+    return Promise.resolve();
+  }
+
+  const serverToClose = activeServer;
+  activeServer = null;
+
+  return new Promise((resolve, reject) => {
+    serverToClose.close((error) => {
+      if (error) {
+        return reject(error);
+      }
+
+      resolve();
+    });
+  });
+}
+
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error('Server start error:', error.message || error);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  app,
+  startServer,
+  stopServer,
+};
