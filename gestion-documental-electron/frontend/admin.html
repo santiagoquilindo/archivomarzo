@@ -9,122 +9,434 @@
   </head>
   <body>
     <div class="container page-container-wide">
-      <div class="page-header">
-        <div class="brand">
-          <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
-          <h1 class="brand-title">Panel Admin</h1>
-        </div>
-      </div>
-
-      <div class="card">
-        <p>Bienvenido, <strong id="userName"></strong> (admin)</p>
-        <button id="logoutBtn" type="button">Cerrar sesión</button>
-      </div>
-
-      <div class="card">
-        <h2>Carpetas raíz documentales</h2>
-        <form id="rootFolderForm">
-          <input type="text" id="folderName" placeholder="Nombre de la carpeta" required />
-          <input
-            type="file"
-            id="rootFolderPicker"
-            class="picker-input"
-            webkitdirectory
-            directory
-          />
-          <div class="picker-row">
-            <button type="button" id="pickRootFolderBtn">Explorar carpeta</button>
-            <span id="pickedRootFolderLabel" class="picker-label">Ninguna carpeta seleccionada</span>
+      <div class="app-shell admin-panel">
+        <div class="page-header card page-header-card">
+          <div class="header-main">
+            <div class="brand">
+              <div class="brand-logo-wrap">
+                <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
+              </div>
+              <div class="brand-copy">
+                <p class="page-kicker">Gestion documental</p>
+                <h1 class="brand-title">Panel Admin</h1>
+                <p class="page-subtitle">
+                  Accede a los modulos principales del sistema desde un panel mas
+                  limpio, con navegacion directa y una sola seccion activa a la vez.
+                </p>
+              </div>
+            </div>
           </div>
-          <input
-            type="text"
-            id="folderPath"
-            placeholder="Ruta absoluta (ej: D:\doc marzo\ARCHIVO)"
-            readonly
-            required
-          />
-          <button type="submit">Agregar carpeta</button>
-        </form>
-        <ul id="rootFoldersList" class="root-folders-list"></ul>
-      </div>
 
-      <div class="card">
-        <h2>Indexación</h2>
-        <button id="indexBtn" type="button">Ejecutar indexación</button>
-        <div id="indexStatus" class="index-status-pill">
-          <span id="indexStatusDot" class="index-status-dot"></span>
-          <span id="indexStatusText">Indexación inactiva</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Documentos</h2>
-        <div class="filters">
-          <input type="text" id="filterName" placeholder="Buscar por nombre" />
-          <input type="text" id="filterVoucher" placeholder="Número de comprobante" />
-          <select id="filterRootFolder">
-            <option value="">Todas las carpetas</option>
-          </select>
-          <select id="filterStatus">
-            <option value="">Todos los estados</option>
-            <option value="available">Disponible</option>
-            <option value="updated">Actualizado</option>
-            <option value="missing">No encontrado</option>
-            <option value="pending">Pendiente</option>
-            <option value="error">Error</option>
-          </select>
-          <button id="searchBtn" type="button">Buscar</button>
-        </div>
-        <p id="documentsHint" class="documents-hint">
-          Los documentos aparecerán cuando pulses "Buscar".
-        </p>
-        <div id="documentsList"></div>
-      </div>
-
-      <div class="card">
-        <h2>Crear documento nuevo</h2>
-        <form id="createDocForm">
-          <input type="text" id="docName" placeholder="Nombre visible" required />
-          <input type="file" id="docFile" class="picker-input" />
-          <div class="picker-row">
-            <button type="button" id="pickDocFileBtn">Explorar archivo</button>
-            <span id="pickedDocFileLabel" class="picker-label">Ningún archivo seleccionado</span>
+          <div class="header-session">
+            <div class="session-panel">
+              <div>
+                <p class="session-label">Sesion activa</p>
+                <p class="session-user">Bienvenido, <strong id="userName"></strong></p>
+              </div>
+              <span class="session-role">Administrador</span>
+              <button id="logoutBtn" type="button">Cerrar sesion</button>
+            </div>
           </div>
-          <input
-            type="text"
-            id="docPath"
-            placeholder="Ruta del archivo local"
-            readonly
-            required
-          />
-          <input type="text" id="docRelativePath" placeholder="Ruta relativa (opcional)" />
-          <select id="docRootFolder" required>
-            <option value="">Seleccionar carpeta</option>
-          </select>
-          <input type="date" id="docDate" />
-          <input type="text" id="docVoucher" placeholder="Número de comprobante" />
-          <input type="text" id="docCategory" placeholder="Categoría" />
-          <input type="text" id="docType" placeholder="Tipo documental" />
-          <textarea id="docNotes" placeholder="Notas"></textarea>
-          <input type="text" id="docSourceArea" placeholder="Área de origen" />
-          <button type="submit">Crear documento</button>
-        </form>
-      </div>
+        </div>
 
-      <div id="editModal" class="modal is-hidden">
-        <div class="modal-content">
-          <span id="closeEdit" class="modal-close" role="button" tabindex="0">×</span>
-          <h2>Editar documento</h2>
-          <form id="editDocForm">
-            <input type="hidden" id="editDocId" />
-            <input type="date" id="editDocDate" />
-            <input type="text" id="editDocVoucher" placeholder="Número de comprobante" />
-            <input type="text" id="editDocCategory" placeholder="Categoría" />
-            <input type="text" id="editDocType" placeholder="Tipo documental" />
-            <textarea id="editDocNotes" placeholder="Notas"></textarea>
-            <input type="text" id="editDocSourceArea" placeholder="Área de origen" />
-            <button type="submit">Actualizar</button>
-          </form>
+        <nav class="card admin-switcher" aria-label="Navegacion del panel">
+          <div class="admin-switcher-copy">
+            <p class="page-kicker">Navegacion interna</p>
+            <h2>Panel principal</h2>
+          </div>
+          <div class="admin-switcher-actions">
+            <button
+              type="button"
+              class="admin-switcher-btn is-active"
+              data-admin-view-trigger="dashboard"
+            >
+              Inicio
+            </button>
+            <button
+              type="button"
+              class="admin-switcher-btn"
+              data-admin-view-trigger="root-folders"
+            >
+              Carpetas raiz
+            </button>
+            <button
+              type="button"
+              class="admin-switcher-btn"
+              data-admin-view-trigger="indexing"
+            >
+              Indexacion
+            </button>
+            <button
+              type="button"
+              class="admin-switcher-btn"
+              data-admin-view-trigger="documents"
+            >
+              Documentos
+            </button>
+            <button
+              type="button"
+              class="admin-switcher-btn"
+              data-admin-view-trigger="create-document"
+            >
+              Crear documento
+            </button>
+          </div>
+        </nav>
+
+        <main class="admin-views">
+          <section class="admin-view" data-admin-view-panel="dashboard">
+            <div class="card admin-dashboard-hero">
+              <div class="section-header">
+                <div class="section-heading">
+                  <h2>Dashboard administrativo</h2>
+                  <p>
+                    Selecciona un modulo para trabajar sin cargar todo el contenido
+                    al mismo tiempo. Cada acceso abre una sola vista principal.
+                  </p>
+                </div>
+                <span class="section-chip">Inicio</span>
+              </div>
+
+              <div class="admin-overview-grid">
+                <button
+                  type="button"
+                  class="admin-overview-card"
+                  data-admin-view-trigger="root-folders"
+                >
+                  <span class="admin-overview-eyebrow">Administracion base</span>
+                  <strong>Carpetas raiz documentales</strong>
+                  <span>
+                    Registra, activa o elimina carpetas raiz desde un modulo dedicado.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="admin-overview-card"
+                  data-admin-view-trigger="indexing"
+                >
+                  <span class="admin-overview-eyebrow">Proceso tecnico</span>
+                  <strong>Indexacion</strong>
+                  <span>
+                    Ejecuta el proceso y consulta el estado actual sin distracciones.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="admin-overview-card"
+                  data-admin-view-trigger="documents"
+                >
+                  <span class="admin-overview-eyebrow">Consulta operativa</span>
+                  <strong>Documentos</strong>
+                  <span>
+                    Busca, revisa detalle, abre archivos y edita registros existentes.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="admin-overview-card"
+                  data-admin-view-trigger="create-document"
+                >
+                  <span class="admin-overview-eyebrow">Registro</span>
+                  <strong>Crear documento nuevo</strong>
+                  <span>
+                    Carga archivos, completa metadatos y crea nuevos documentos.
+                  </span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-view" data-admin-view-panel="root-folders" hidden>
+            <section class="card admin-module-card">
+              <div class="module-toolbar">
+                <button type="button" class="module-back-btn" data-admin-view-trigger="dashboard">
+                  Volver al panel principal
+                </button>
+              </div>
+
+              <div class="section-header">
+                <div class="section-heading">
+                  <h2>Carpetas raiz documentales</h2>
+                  <p>
+                    Administra las ubicaciones base del sistema y controla cuales
+                    participan en los procesos documentales.
+                  </p>
+                </div>
+                <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <div class="panel-layout">
+                <form id="rootFolderForm" class="form-grid form-grid-compact">
+                  <div class="field-group">
+                    <label class="field-label" for="folderName">Nombre de la carpeta</label>
+                    <input type="text" id="folderName" placeholder="Nombre de la carpeta" required />
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label" for="folderPath">Ruta absoluta</label>
+                    <input
+                      type="text"
+                      id="folderPath"
+                      placeholder="Ruta absoluta (ej: D:\doc marzo\ARCHIVO)"
+                      readonly
+                      required
+                    />
+                  </div>
+
+                  <input
+                    type="file"
+                    id="rootFolderPicker"
+                    class="picker-input"
+                    webkitdirectory
+                    directory
+                  />
+
+                  <div class="field-group full-width">
+                    <label class="field-label" for="rootFolderPicker">Seleccion de carpeta</label>
+                    <div class="picker-row">
+                      <button type="button" id="pickRootFolderBtn">Explorar carpeta</button>
+                      <span id="pickedRootFolderLabel" class="picker-label">Ninguna carpeta seleccionada</span>
+                    </div>
+                  </div>
+
+                  <div class="field-group full-width">
+                    <button type="submit">Agregar carpeta</button>
+                  </div>
+                </form>
+
+                <ul id="rootFoldersList" class="root-folders-list"></ul>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-view" data-admin-view-panel="indexing" hidden>
+            <section class="card admin-module-card">
+              <div class="module-toolbar">
+                <button type="button" class="module-back-btn" data-admin-view-trigger="dashboard">
+                  Volver al panel principal
+                </button>
+              </div>
+
+              <div class="section-header">
+                <div class="section-heading">
+                  <h2>Indexacion</h2>
+                  <p>
+                    Ejecuta el proceso tecnico de lectura documental y revisa su
+                    estado en una vista enfocada.
+                  </p>
+                </div>
+                <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <div class="index-panel">
+                <button id="indexBtn" type="button">Ejecutar indexacion</button>
+                <div id="indexStatus" class="index-status-pill">
+                  <span id="indexStatusDot" class="index-status-dot"></span>
+                  <span id="indexStatusText">Indexacion inactiva</span>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-view" data-admin-view-panel="documents" hidden>
+            <section class="card admin-module-card">
+              <div class="module-toolbar">
+                <button type="button" class="module-back-btn" data-admin-view-trigger="dashboard">
+                  Volver al panel principal
+                </button>
+              </div>
+
+              <div class="section-header">
+                <div class="section-heading">
+                  <h2>Documentos</h2>
+                  <p>
+                    Filtra documentos por nombre, comprobante, carpeta raiz o estado
+                    y accede a sus acciones disponibles.
+                  </p>
+                </div>
+                <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <div class="panel-layout">
+                <div class="filters">
+                  <input type="text" id="filterName" placeholder="Buscar por nombre" />
+                  <input type="text" id="filterVoucher" placeholder="Numero de comprobante" />
+                  <select id="filterRootFolder">
+                    <option value="">Todas las carpetas</option>
+                  </select>
+                  <select id="filterStatus">
+                    <option value="">Todos los estados</option>
+                    <option value="available">Disponible</option>
+                    <option value="updated">Actualizado</option>
+                    <option value="missing">No encontrado</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="error">Error</option>
+                  </select>
+                  <button id="searchBtn" type="button">Buscar</button>
+                </div>
+
+                <p id="documentsHint" class="documents-hint">
+                  Los documentos apareceran cuando pulses "Buscar".
+                </p>
+                <div id="documentsList"></div>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-view" data-admin-view-panel="create-document" hidden>
+            <section class="card admin-module-card">
+              <div class="module-toolbar">
+                <button type="button" class="module-back-btn" data-admin-view-trigger="dashboard">
+                  Volver al panel principal
+                </button>
+              </div>
+
+              <div class="section-header">
+                <div class="section-heading">
+                  <h2>Crear documento nuevo</h2>
+                  <p>
+                    Registra nuevos documentos completando metadatos y asociando el
+                    archivo al repositorio documental.
+                  </p>
+                </div>
+                <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <form id="createDocForm" class="form-grid">
+                <div class="field-group">
+                  <label class="field-label" for="docName">Nombre visible</label>
+                  <input type="text" id="docName" placeholder="Nombre visible" required />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docRootFolder">Carpeta raiz</label>
+                  <select id="docRootFolder" required>
+                    <option value="">Seleccionar carpeta</option>
+                  </select>
+                </div>
+
+                <input type="file" id="docFile" class="picker-input" />
+
+                <div class="field-group full-width">
+                  <label class="field-label" for="docFile">Archivo local</label>
+                  <div class="picker-row">
+                    <button type="button" id="pickDocFileBtn">Explorar archivo</button>
+                    <span id="pickedDocFileLabel" class="picker-label">Ningun archivo seleccionado</span>
+                  </div>
+                </div>
+
+                <div class="field-group full-width">
+                  <label class="field-label" for="docPath">Ruta del archivo local</label>
+                  <input
+                    type="text"
+                    id="docPath"
+                    placeholder="Ruta del archivo local"
+                    readonly
+                    required
+                  />
+                </div>
+
+                <div class="field-group full-width">
+                  <label class="field-label" for="docRelativePath">Ruta relativa</label>
+                  <input type="text" id="docRelativePath" placeholder="Ruta relativa (opcional)" />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docDate">Fecha documental</label>
+                  <input type="date" id="docDate" />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docVoucher">Numero de comprobante</label>
+                  <input type="text" id="docVoucher" placeholder="Numero de comprobante" />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docCategory">Categoria</label>
+                  <input type="text" id="docCategory" placeholder="Categoria" />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docType">Tipo documental</label>
+                  <input type="text" id="docType" placeholder="Tipo documental" />
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="docSourceArea">Area de origen</label>
+                  <input type="text" id="docSourceArea" placeholder="Area de origen" />
+                </div>
+
+                <div class="field-group full-width">
+                  <label class="field-label" for="docNotes">Notas</label>
+                  <textarea id="docNotes" placeholder="Notas"></textarea>
+                </div>
+
+                <div class="field-group full-width">
+                  <button type="submit">Crear documento</button>
+                </div>
+              </form>
+            </section>
+          </section>
+        </main>
+
+        <div id="editModal" class="modal is-hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h2>Editar documento</h2>
+                <p>Actualiza metadatos sin alterar la estructura funcional del modulo.</p>
+              </div>
+              <button
+                type="button"
+                id="closeEdit"
+                class="modal-close-button"
+                aria-label="Cerrar"
+              >
+                x
+              </button>
+            </div>
+
+            <form id="editDocForm" class="form-grid">
+              <input type="hidden" id="editDocId" />
+
+              <div class="field-group">
+                <label class="field-label" for="editDocDate">Fecha documental</label>
+                <input type="date" id="editDocDate" />
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="editDocVoucher">Numero de comprobante</label>
+                <input type="text" id="editDocVoucher" placeholder="Numero de comprobante" />
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="editDocCategory">Categoria</label>
+                <input type="text" id="editDocCategory" placeholder="Categoria" />
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="editDocType">Tipo documental</label>
+                <input type="text" id="editDocType" placeholder="Tipo documental" />
+              </div>
+
+              <div class="field-group full-width">
+                <label class="field-label" for="editDocNotes">Notas</label>
+                <textarea id="editDocNotes" placeholder="Notas"></textarea>
+              </div>
+
+              <div class="field-group full-width">
+                <label class="field-label" for="editDocSourceArea">Area de origen</label>
+                <input type="text" id="editDocSourceArea" placeholder="Area de origen" />
+              </div>
+
+              <div class="field-group full-width">
+                <button type="submit">Actualizar</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

@@ -9,37 +9,69 @@
   </head>
   <body>
     <div class="container page-container-medium">
-      <div class="page-header">
-        <div class="brand">
-          <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
-          <h1 class="brand-title">Panel Usuario</h1>
-        </div>
-      </div>
+      <div class="app-shell user-panel">
+        <div class="page-header card page-header-card">
+          <div class="header-main">
+            <div class="brand">
+              <div class="brand-logo-wrap">
+                <img src="assets/logo-sag.jpg" alt="Logo SAG" class="brand-logo" />
+              </div>
+              <div class="brand-copy">
+                <p class="page-kicker">Consulta documental</p>
+                <h1 class="brand-title">Panel Usuario</h1>
+                <p class="page-subtitle">
+                  Revisa documentos, consulta su detalle y accede al historial
+                  disponible desde una vista clara y administrativa.
+                </p>
+              </div>
+            </div>
+          </div>
 
-      <div class="card">
-        <p>Bienvenido, <strong id="userName"></strong> (user)</p>
-        <button id="logoutBtn" type="button">Cerrar sesión</button>
-      </div>
-
-      <div class="card">
-        <h2>Documentos</h2>
-        <div class="filters">
-          <input type="text" id="filterName" placeholder="Buscar por nombre" />
-          <input type="text" id="filterVoucher" placeholder="Número de comprobante" />
-          <select id="filterStatus">
-            <option value="">Todos los estados</option>
-            <option value="available">Disponible</option>
-            <option value="updated">Actualizado</option>
-            <option value="missing">No encontrado</option>
-            <option value="pending">Pendiente</option>
-            <option value="error">Error</option>
-          </select>
-          <button id="searchBtn" type="button">Buscar</button>
+          <div class="header-session">
+            <div class="session-panel">
+              <div>
+                <p class="session-label">Sesion activa</p>
+                <p class="session-user">Bienvenido, <strong id="userName"></strong></p>
+              </div>
+              <span class="session-role">Usuario</span>
+              <button id="logoutBtn" type="button">Cerrar sesion</button>
+            </div>
+          </div>
         </div>
-        <p id="documentsHint" class="documents-hint">
-          Los documentos aparecerán cuando pulses "Buscar".
-        </p>
-        <div id="documentsList"></div>
+
+        <section class="card">
+          <div class="section-header">
+            <div class="section-heading">
+              <h2>Documentos</h2>
+              <p>
+                Filtra por nombre, comprobante o estado para ubicar archivos y
+                consultar su informacion relevante.
+              </p>
+            </div>
+            <span class="section-chip">Consulta</span>
+          </div>
+
+          <div class="panel-layout">
+            <div class="filters">
+              <input type="text" id="filterName" placeholder="Buscar por nombre" />
+              <input type="text" id="filterVoucher" placeholder="Numero de comprobante" />
+              <select id="filterStatus">
+                <option value="">Todos los estados</option>
+                <option value="available">Disponible</option>
+                <option value="updated">Actualizado</option>
+                <option value="missing">No encontrado</option>
+                <option value="pending">Pendiente</option>
+                <option value="error">Error</option>
+              </select>
+              <button id="searchBtn" type="button">Buscar</button>
+            </div>
+
+            <p id="documentsHint" class="documents-hint">
+              Los documentos apareceran cuando pulses "Buscar".
+            </p>
+            <div id="documentsList"></div>
+          </div>
+        </section>
       </div>
     </div>
 

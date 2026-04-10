@@ -20,10 +20,52 @@
 
   const state = window.adminState.createAdminState();
   const notify = createNotifier();
+  const AVAILABLE_VIEWS = [
+    "dashboard",
+    "root-folders",
+    "indexing",
+    "documents",
+    "create-document",
+  ];
 
   let documentsModule;
   let rootFoldersModule;
   let indexingModule;
+
+  function setActiveView(view) {
+    const nextView = AVAILABLE_VIEWS.includes(view) ? view : "dashboard";
+
+    document.querySelectorAll("[data-admin-view-panel]").forEach((panel) => {
+      panel.hidden = panel.dataset.adminViewPanel !== nextView;
+    });
+
+    document.querySelectorAll("[data-admin-view-trigger]").forEach((trigger) => {
+      trigger.classList.toggle(
+        "is-active",
+        trigger.dataset.adminViewTrigger === nextView,
+      );
+    });
+
+    state.currentView = nextView;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function bindViewNavigation() {
+    const container = document.querySelector(".admin-panel");
+    if (!container || container.dataset.boundViewNavigation === "true") {
+      return;
+    }
+
+    container.dataset.boundViewNavigation = "true";
+    container.addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-admin-view-trigger]");
+      if (!trigger) {
+        return;
+      }
+
+      setActiveView(trigger.dataset.adminViewTrigger);
+    });
+  }
 
   async function authAndInit() {
     try {
@@ -88,6 +130,8 @@
     });
 
     bindLogout();
+    bindViewNavigation();
+    setActiveView("dashboard");
     rootFoldersModule.init();
     indexingModule.init();
     documentsModule.init();
