@@ -8,6 +8,7 @@
     "dev": "electron .",
     "init-db": "node backend/src/db/init.js",
     "start-api": "node backend/src/server.js",
+    "audit-db": "node scripts/audit-database.js",
     "package": "electron-builder"
   },
   "author": "",

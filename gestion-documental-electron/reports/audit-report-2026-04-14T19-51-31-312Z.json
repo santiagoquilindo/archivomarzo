@@ -1,0 +1,834 @@
+{
+  "meta": {
+    "generated_at": "2026-04-14T19:51:29.117Z",
+    "database_path": "D:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\data\\app.db",
+    "mode": "read-only",
+    "hung_run_threshold_hours": 24,
+    "example_limit": 2,
+    "fs_checks_performed": true
+  },
+  "summary": {
+    "total_tables": 5,
+    "total_root_folders": 2,
+    "total_documents": 26289,
+    "total_document_history": 26522,
+    "total_indexing_runs": 41,
+    "sqlite_foreign_keys_pragma": 0
+  },
+  "indexing_runs": {
+    "counts_by_status": {
+      "completed": 36,
+      "failed": 4,
+      "running": 1
+    },
+    "running_runs": [
+      {
+        "id": 41,
+        "started_at": "2026-04-09T19:30:38.444Z",
+        "finished_at": null,
+        "status": "running",
+        "scanned_files_count": 0,
+        "indexed_files_count": 0,
+        "updated_files_count": 0,
+        "missing_files_count": 0,
+        "error_count": 0,
+        "notes": null,
+        "age_hours": 120.35,
+        "appears_hung": true
+      }
+    ],
+    "hung_runs": [
+      {
+        "id": 41,
+        "started_at": "2026-04-09T19:30:38.444Z",
+        "finished_at": null,
+        "status": "running",
+        "scanned_files_count": 0,
+        "indexed_files_count": 0,
+        "updated_files_count": 0,
+        "missing_files_count": 0,
+        "error_count": 0,
+        "notes": null,
+        "age_hours": 120.35,
+        "appears_hung": true
+      }
+    ]
+  },
+  "documents": {
+    "counts_by_status": {
+      "available": 26221,
+      "updated": 47,
+      "missing": 20,
+      "pending": 1
+    },
+    "orphan_documents": {
+      "total": 21533,
+      "with_active_equivalent_same_path": 7436,
+      "without_active_equivalent_same_path": 14097,
+      "by_root_folder_id": [
+        {
+          "root_folder_id": 37,
+          "count": 8939,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 8883,
+            "updated": 41,
+            "missing": 15
+          }
+        },
+        {
+          "root_folder_id": 36,
+          "count": 7107,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 7106,
+            "pending": 1
+          }
+        },
+        {
+          "root_folder_id": 13,
+          "count": 4309,
+          "prefixes": [
+            "D:/doc marzo"
+          ],
+          "statuses": {
+            "available": 4303,
+            "updated": 6
+          }
+        },
+        {
+          "root_folder_id": 1,
+          "count": 1144,
+          "prefixes": [
+            "C:/Users/Personal/Downloads",
+            "D:/doc marzo"
+          ],
+          "statuses": {
+            "available": 1142,
+            "missing": 2
+          }
+        },
+        {
+          "root_folder_id": 10,
+          "count": 11,
+          "prefixes": [
+            "C:/Users/Personal/Downloads",
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 9,
+            "missing": 2
+          }
+        },
+        {
+          "root_folder_id": 2,
+          "count": 7,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 7
+          }
+        },
+        {
+          "root_folder_id": 11,
+          "count": 7,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 7
+          }
+        },
+        {
+          "root_folder_id": 41,
+          "count": 5,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 5
+          }
+        },
+        {
+          "root_folder_id": 33,
+          "count": 4,
+          "prefixes": [
+            "D:/sag"
+          ],
+          "statuses": {
+            "available": 4
+          }
+        }
+      ],
+      "by_path_prefix": [
+        {
+          "prefix": "D:/sag",
+          "count": 16079,
+          "with_active_equivalent": 7436,
+          "without_active_equivalent": 8643
+        },
+        {
+          "prefix": "D:/doc marzo",
+          "count": 5451,
+          "with_active_equivalent": 0,
+          "without_active_equivalent": 5451
+        },
+        {
+          "prefix": "C:/Users/Personal/Downloads",
+          "count": 3,
+          "with_active_equivalent": 0,
+          "without_active_equivalent": 3
+        }
+      ],
+      "examples": [
+        {
+          "id": 1,
+          "root_folder_id": 1,
+          "status": "available",
+          "absolute_path": "D:\\doc marzo\\ARCHIVO\\ARCHIVO SAG CAUCA 2022\\archivo matadero  febrero28\\ARCHIVO JEFE DE PLANTA PBA\\GABINETE A.xlsx"
+        },
+        {
+          "id": 2,
+          "root_folder_id": 1,
+          "status": "available",
+          "absolute_path": "D:\\doc marzo\\ARCHIVO\\ARCHIVO SAG CAUCA 2022\\archivo matadero  febrero28\\ARCHIVO JEFE DE PLANTA PBA\\GABINETE A.xlsx"
+        }
+      ]
+    },
+    "duplicate_paths": {
+      "global": {
+        "groups": 9288,
+        "excess_rows": 12109,
+        "examples": [
+          {
+            "normalized_path": "d:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\subdir\\test3.doc",
+            "count": 11,
+            "ids": [
+              713,
+              714,
+              724,
+              725,
+              732,
+              733,
+              5482,
+              12587,
+              21488,
+              21496,
+              21515
+            ],
+            "root_folder_ids": [
+              2,
+              10,
+              11,
+              33,
+              36,
+              37,
+              38,
+              41
+            ],
+            "sample_paths": [
+              "d:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\subdir\\test3.doc",
+              "D:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\subdir\\test3.doc"
+            ]
+          },
+          {
+            "normalized_path": "d:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\test1.txt",
+            "count": 10,
+            "ids": [
+              715,
+              716,
+              726,
+              727,
+              734,
+              5483,
+              12588,
+              21489,
+              21497,
+              21516
+            ],
+            "root_folder_ids": [
+              2,
+              10,
+              11,
+              33,
+              36,
+              37,
+              38,
+              41
+            ],
+            "sample_paths": [
+              "d:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\test1.txt",
+              "D:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\test1.txt"
+            ]
+          }
+        ]
+      },
+      "per_root_folder": {
+        "groups": 365,
+        "excess_rows": 365,
+        "examples": [
+          {
+            "root_folder_id": 1,
+            "normalized_path": "d:\\doc marzo\\archivo\\archivo sag cauca 2022\\archivo matadero  febrero28\\archivo jefe de planta pba\\gabinete a.xlsx",
+            "count": 2,
+            "ids": [
+              1,
+              2
+            ],
+            "sample_paths": [
+              "D:\\doc marzo\\ARCHIVO\\ARCHIVO SAG CAUCA 2022\\archivo matadero  febrero28\\ARCHIVO JEFE DE PLANTA PBA\\GABINETE A.xlsx"
+            ]
+          },
+          {
+            "root_folder_id": 1,
+            "normalized_path": "d:\\doc marzo\\archivo\\archivo sag cauca 2022\\archivo matadero  febrero28\\archivo jefe de planta pba\\gabinete b .xlsx",
+            "count": 2,
+            "ids": [
+              3,
+              4
+            ],
+            "sample_paths": [
+              "D:\\doc marzo\\ARCHIVO\\ARCHIVO SAG CAUCA 2022\\archivo matadero  febrero28\\ARCHIVO JEFE DE PLANTA PBA\\GABINETE B .xlsx"
+            ]
+          }
+        ]
+      }
+    },
+    "status_disk_consistency": {
+      "checked_documents": 26289,
+      "skipped": false,
+      "missing_status_but_exists_on_disk_count": 0,
+      "non_missing_status_but_missing_on_disk_count": 32,
+      "missing_status_but_exists_on_disk_examples": [],
+      "non_missing_status_but_missing_on_disk_examples": [
+        {
+          "id": 4764,
+          "root_folder_id": 10,
+          "status": "available",
+          "absolute_path": "d:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\panelero1.jpg"
+        },
+        {
+          "id": 4765,
+          "root_folder_id": 11,
+          "status": "available",
+          "absolute_path": "D:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\test_docs\\panelero1.jpg"
+        }
+      ],
+      "blank_or_invalid_paths": [
+        {
+          "id": 4760,
+          "root_folder_id": 1,
+          "status": "missing",
+          "absolute_path": "C:\\Users\\Personal\\Downloads\\panelero2.png",
+          "relative_path": ""
+        }
+      ]
+    }
+  },
+  "document_history": {
+    "total_rows": 26522,
+    "action_counts": {
+      "indexed": 26278,
+      "reindexed": 146,
+      "opened": 66,
+      "marked_missing": 20,
+      "created": 10,
+      "updated": 2
+    },
+    "documents_without_history_count": 1,
+    "documents_without_history_examples": [
+      {
+        "id": 26291,
+        "root_folder_id": 55,
+        "status": "available",
+        "absolute_path": "D:\\sag\\segundo trimestre\\marzo buscador\\gestion-documental-electron\\node_modules\\electron-builder\\node_modules\\fs-extra\\lib\\json\\output-json.js"
+      }
+    ],
+    "documents_with_history_but_no_indexed_count": 10,
+    "documents_with_history_but_no_indexed_examples": [
+      {
+        "id": 4760,
+        "root_folder_id": 1,
+        "status": "missing",
+        "absolute_path": "C:\\Users\\Personal\\Downloads\\panelero2.png",
+        "actions": [
+          "created",
+          "marked_missing"
+        ]
+      },
+      {
+        "id": 4761,
+        "root_folder_id": 1,
+        "status": "missing",
+        "absolute_path": "C:\\Users\\Personal\\Downloads\\panelero3.png",
+        "actions": [
+          "created",
+          "marked_missing"
+        ]
+      }
+    ],
+    "anomalous_sequences_count": 0,
+    "anomalous_sequences_examples": []
+  },
+  "root_folders": {
+    "total": 2,
+    "active_count": 2,
+    "inactive_count": 0,
+    "rows": [
+      {
+        "id": 38,
+        "name": "Test Documents",
+        "absolute_path": "d:/sag/segundo trimestre/marzo buscador/gestion-documental-electron/test_docs",
+        "is_active": true,
+        "created_at": "2026-04-08T15:37:40.888Z",
+        "updated_at": "2026-04-08T15:37:40.888Z",
+        "documents": 6,
+        "distinct_paths_case_insensitive": 6,
+        "suspicious_scope": {
+          "projectFiles": 6,
+          "nodeModules": 0,
+          "electronUserData": 0,
+          "downloads": 0
+        }
+      },
+      {
+        "id": 55,
+        "name": "primer trimestre",
+        "absolute_path": "D:\\sag",
+        "is_active": true,
+        "created_at": "2026-04-09T19:30:30.535Z",
+        "updated_at": "2026-04-09T19:30:30.535Z",
+        "documents": 4750,
+        "distinct_paths_case_insensitive": 4750,
+        "suspicious_scope": {
+          "projectFiles": 3157,
+          "nodeModules": 2761,
+          "electronUserData": 51,
+          "downloads": 0
+        }
+      }
+    ],
+    "suspicious_roots": [
+      {
+        "id": 38,
+        "name": "Test Documents",
+        "absolute_path": "d:/sag/segundo trimestre/marzo buscador/gestion-documental-electron/test_docs",
+        "is_active": true,
+        "created_at": "2026-04-08T15:37:40.888Z",
+        "updated_at": "2026-04-08T15:37:40.888Z",
+        "documents": 6,
+        "distinct_paths_case_insensitive": 6,
+        "suspicious_scope": {
+          "projectFiles": 6,
+          "nodeModules": 0,
+          "electronUserData": 0,
+          "downloads": 0
+        }
+      },
+      {
+        "id": 55,
+        "name": "primer trimestre",
+        "absolute_path": "D:\\sag",
+        "is_active": true,
+        "created_at": "2026-04-09T19:30:30.535Z",
+        "updated_at": "2026-04-09T19:30:30.535Z",
+        "documents": 4750,
+        "distinct_paths_case_insensitive": 4750,
+        "suspicious_scope": {
+          "projectFiles": 3157,
+          "nodeModules": 2761,
+          "electronUserData": 51,
+          "downloads": 0
+        }
+      }
+    ]
+  },
+  "schema": {
+    "tables": [
+      {
+        "name": "document_history",
+        "sql": "CREATE TABLE document_history (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        document_id INTEGER NOT NULL,\n        action TEXT NOT NULL,\n        field_name TEXT,\n        old_value TEXT,\n        new_value TEXT,\n        performed_by INTEGER NOT NULL,\n        performed_at TEXT NOT NULL,\n        FOREIGN KEY (document_id) REFERENCES documents (id),\n        FOREIGN KEY (performed_by) REFERENCES users (id)\n      )"
+      },
+      {
+        "name": "documents",
+        "sql": "CREATE TABLE documents (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        original_name TEXT NOT NULL,\n        stored_name TEXT,\n        absolute_path TEXT NOT NULL,\n        relative_path TEXT NOT NULL,\n        root_folder_id INTEGER NOT NULL,\n        root_folder_name TEXT NOT NULL,\n        file_extension TEXT,\n        file_size INTEGER,\n        file_hash TEXT NOT NULL,\n        file_modified_at TEXT,\n        document_date TEXT,\n        voucher_number TEXT,\n        category TEXT,\n        document_type TEXT,\n        notes TEXT,\n        source_area TEXT,\n        status TEXT NOT NULL DEFAULT 'active',\n        created_by INTEGER,\n        updated_by INTEGER,\n        created_at TEXT NOT NULL,\n        updated_at TEXT NOT NULL,\n        FOREIGN KEY (root_folder_id) REFERENCES root_folders (id)\n      )"
+      },
+      {
+        "name": "indexing_runs",
+        "sql": "CREATE TABLE indexing_runs (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        started_at TEXT NOT NULL,\n        finished_at TEXT,\n        status TEXT NOT NULL,\n        scanned_files_count INTEGER DEFAULT 0,\n        indexed_files_count INTEGER DEFAULT 0,\n        updated_files_count INTEGER DEFAULT 0,\n        missing_files_count INTEGER DEFAULT 0,\n        error_count INTEGER DEFAULT 0,\n        notes TEXT\n      )"
+      },
+      {
+        "name": "root_folders",
+        "sql": "CREATE TABLE root_folders (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        name TEXT NOT NULL,\n        absolute_path TEXT NOT NULL UNIQUE,\n        is_active INTEGER NOT NULL DEFAULT 1,\n        created_at TEXT NOT NULL,\n        updated_at TEXT NOT NULL\n      )"
+      },
+      {
+        "name": "users",
+        "sql": "CREATE TABLE users (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        name TEXT NOT NULL,\n        username TEXT NOT NULL UNIQUE,\n        password_hash TEXT NOT NULL,\n        role TEXT NOT NULL CHECK(role IN ('admin', 'user')),\n        status TEXT NOT NULL CHECK(status IN ('active', 'inactive')) DEFAULT 'active',\n        created_at TEXT NOT NULL,\n        updated_at TEXT NOT NULL\n      )"
+      }
+    ],
+    "key_tables": {
+      "documents": {
+        "table": "documents",
+        "create_sql": "CREATE TABLE documents (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        original_name TEXT NOT NULL,\n        stored_name TEXT,\n        absolute_path TEXT NOT NULL,\n        relative_path TEXT NOT NULL,\n        root_folder_id INTEGER NOT NULL,\n        root_folder_name TEXT NOT NULL,\n        file_extension TEXT,\n        file_size INTEGER,\n        file_hash TEXT NOT NULL,\n        file_modified_at TEXT,\n        document_date TEXT,\n        voucher_number TEXT,\n        category TEXT,\n        document_type TEXT,\n        notes TEXT,\n        source_area TEXT,\n        status TEXT NOT NULL DEFAULT 'active',\n        created_by INTEGER,\n        updated_by INTEGER,\n        created_at TEXT NOT NULL,\n        updated_at TEXT NOT NULL,\n        FOREIGN KEY (root_folder_id) REFERENCES root_folders (id)\n      )",
+        "columns": [
+          {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 1
+          },
+          {
+            "cid": 1,
+            "name": "original_name",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 2,
+            "name": "stored_name",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 3,
+            "name": "absolute_path",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 4,
+            "name": "relative_path",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 5,
+            "name": "root_folder_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 6,
+            "name": "root_folder_name",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 7,
+            "name": "file_extension",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 8,
+            "name": "file_size",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 9,
+            "name": "file_hash",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 10,
+            "name": "file_modified_at",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 11,
+            "name": "document_date",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 12,
+            "name": "voucher_number",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 13,
+            "name": "category",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 14,
+            "name": "document_type",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 15,
+            "name": "notes",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 16,
+            "name": "source_area",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 17,
+            "name": "status",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": "'active'",
+            "pk": 0
+          },
+          {
+            "cid": 18,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 19,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 20,
+            "name": "created_at",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 21,
+            "name": "updated_at",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          }
+        ],
+        "indexes": [
+          {
+            "name": "idx_documents_status",
+            "unique": 0,
+            "origin": "c",
+            "partial": 0
+          },
+          {
+            "name": "idx_documents_root_path",
+            "unique": 0,
+            "origin": "c",
+            "partial": 0
+          }
+        ]
+      },
+      "indexing_runs": {
+        "table": "indexing_runs",
+        "create_sql": "CREATE TABLE indexing_runs (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        started_at TEXT NOT NULL,\n        finished_at TEXT,\n        status TEXT NOT NULL,\n        scanned_files_count INTEGER DEFAULT 0,\n        indexed_files_count INTEGER DEFAULT 0,\n        updated_files_count INTEGER DEFAULT 0,\n        missing_files_count INTEGER DEFAULT 0,\n        error_count INTEGER DEFAULT 0,\n        notes TEXT\n      )",
+        "columns": [
+          {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 1
+          },
+          {
+            "cid": 1,
+            "name": "started_at",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 2,
+            "name": "finished_at",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 3,
+            "name": "status",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 4,
+            "name": "scanned_files_count",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": "0",
+            "pk": 0
+          },
+          {
+            "cid": 5,
+            "name": "indexed_files_count",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": "0",
+            "pk": 0
+          },
+          {
+            "cid": 6,
+            "name": "updated_files_count",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": "0",
+            "pk": 0
+          },
+          {
+            "cid": 7,
+            "name": "missing_files_count",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": "0",
+            "pk": 0
+          },
+          {
+            "cid": 8,
+            "name": "error_count",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": "0",
+            "pk": 0
+          },
+          {
+            "cid": 9,
+            "name": "notes",
+            "type": "TEXT",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 0
+          }
+        ],
+        "indexes": []
+      },
+      "root_folders": {
+        "table": "root_folders",
+        "create_sql": "CREATE TABLE root_folders (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        name TEXT NOT NULL,\n        absolute_path TEXT NOT NULL UNIQUE,\n        is_active INTEGER NOT NULL DEFAULT 1,\n        created_at TEXT NOT NULL,\n        updated_at TEXT NOT NULL\n      )",
+        "columns": [
+          {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "default_value": null,
+            "pk": 1
+          },
+          {
+            "cid": 1,
+            "name": "name",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 2,
+            "name": "absolute_path",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 3,
+            "name": "is_active",
+            "type": "INTEGER",
+            "notnull": 1,
+            "default_value": "1",
+            "pk": 0
+          },
+          {
+            "cid": 4,
+            "name": "created_at",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          },
+          {
+            "cid": 5,
+            "name": "updated_at",
+            "type": "TEXT",
+            "notnull": 1,
+            "default_value": null,
+            "pk": 0
+          }
+        ],
+        "indexes": [
+          {
+            "name": "sqlite_autoindex_root_folders_1",
+            "unique": 1,
+            "origin": "u",
+            "partial": 0
+          }
+        ]
+      }
+    },
+    "expected_vs_real_differences": {
+      "documents": [
+        {
+          "type": "default_mismatch",
+          "column": "status",
+          "expected": "'pending'",
+          "actual": "'active'"
+        }
+      ],
+      "indexing_runs": [],
+      "root_folders": []
+    }
+  }
+}
