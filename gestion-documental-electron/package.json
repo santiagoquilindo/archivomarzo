@@ -9,6 +9,10 @@
     "init-db": "node backend/src/db/init.js",
     "start-api": "node backend/src/server.js",
     "audit-db": "node scripts/audit-database.js",
+    "classify-docs": "node scripts/classify-documents.js",
+    "classify-docs:v2": "node scripts/classify-documents-v2.js",
+    "sanitization:dry-run": "node scripts/simulate-sanitization-dry-run.js",
+    "sanitization:run": "node scripts/run-sanitization.js",
     "package": "electron-builder"
   },
   "author": "",
