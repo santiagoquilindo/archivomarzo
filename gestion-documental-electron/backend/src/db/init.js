@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { db, DB_PATH } = require('./db');
 
 const saltRounds = 10;
+const SHOULD_SEED_TEST_ROOT_FOLDER = process.env.SEED_TEST_ROOT_FOLDER === 'true';
 
 function initDatabase() {
   const dataDir = path.dirname(DB_PATH);
@@ -137,7 +138,14 @@ function initDatabase() {
     });
 
     upsert.finalize(() => {
-      // Seed root folders
+      if (!SHOULD_SEED_TEST_ROOT_FOLDER) {
+        console.log('Skipping Test Documents root folder seed. Set SEED_TEST_ROOT_FOLDER=true to enable it explicitly.');
+        if (require.main === module) {
+          db.close();
+        }
+        return;
+      }
+
       const testDocsPath = path.join(__dirname, '../../../test_docs').replace(/\\/g, '/');
       db.run(`
         INSERT OR IGNORE INTO root_folders (name, absolute_path, is_active, created_at, updated_at)
