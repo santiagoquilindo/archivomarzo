@@ -1,6 +1,10 @@
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { startIndexing, getIndexingRuns } = require('../services/indexingService');
+const {
+  limpiarIndice,
+  startIndexing,
+  getIndexingRuns,
+} = require('../services/indexingService');
 const { AppError, sendError, sendSuccess } = require('../utils/http');
 
 const router = express.Router();
@@ -36,6 +40,30 @@ router.get('/runs', verifyToken, requireRole('admin'), async (req, res) => {
   } catch (error) {
     console.error('Get indexing runs error:', error.message);
     return sendError(res, error, 'Error obteniendo corridas de indexación');
+  }
+});
+
+router.post('/clear', verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const result = await limpiarIndice();
+    return sendSuccess(res, {
+      message: 'Indice limpiado correctamente',
+      ...result,
+    });
+  } catch (error) {
+    if (error.code === 'INDEXING_ALREADY_RUNNING') {
+      return sendError(
+        res,
+        new AppError(
+          error.message,
+          409,
+          'INDEXING_ALREADY_RUNNING',
+        ),
+      );
+    }
+
+    console.error('Clear index error:', error.message);
+    return sendError(res, error, 'Error limpiando indice');
   }
 });
 

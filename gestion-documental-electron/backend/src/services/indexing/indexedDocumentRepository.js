@@ -169,7 +169,48 @@ function markDocumentError(documentId, userId, errorMessage, performedAt) {
   });
 }
 
+function clearIndexedDocuments() {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run('BEGIN TRANSACTION');
+
+      db.run('DELETE FROM document_history', function onDeleteHistory(historyError) {
+        if (historyError) {
+          db.run('ROLLBACK');
+          reject(historyError);
+          return;
+        }
+
+        const deletedHistory = this.changes || 0;
+
+        db.run('DELETE FROM documents', function onDeleteDocuments(documentsError) {
+          if (documentsError) {
+            db.run('ROLLBACK');
+            reject(documentsError);
+            return;
+          }
+
+          const deletedDocuments = this.changes || 0;
+
+          db.run('COMMIT', (commitError) => {
+            if (commitError) {
+              reject(commitError);
+              return;
+            }
+
+            resolve({
+              deletedDocuments,
+              deletedHistory,
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
 module.exports = {
+  clearIndexedDocuments,
   getDocumentsByRootFolder,
   insertIndexedDocument,
   updateIndexedDocument,

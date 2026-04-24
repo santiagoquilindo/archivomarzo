@@ -56,6 +56,12 @@
     return request("/api/indexing/runs");
   }
 
+  function clearIndex() {
+    return request("/api/indexing/clear", {
+      method: "POST",
+    });
+  }
+
   function searchDocuments(filters) {
     const query = window.documentUi.buildDocumentQuery(filters);
     const path = query ? `/api/documents?${query}` : "/api/documents";
@@ -97,6 +103,7 @@
     deleteRootFolder,
     runIndexing,
     getIndexingRuns,
+    clearIndex,
     searchDocuments,
     getDocument,
     createDocument,

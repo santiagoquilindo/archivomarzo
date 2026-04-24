@@ -134,7 +134,12 @@ router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
       );
     }
 
-    return sendSuccess(res, { message: 'Carpeta raíz eliminada' });
+    return sendSuccess(res, {
+      message: 'Carpeta raíz eliminada',
+      deletedDocuments: result.deletedDocuments,
+      deletedHistory: result.deletedHistory,
+      deletedIndexingRuns: result.deletedIndexingRuns,
+    });
   } catch (error) {
     console.error('Delete root folder error:', error.message);
     return sendError(res, error, 'Error eliminando carpeta raíz');

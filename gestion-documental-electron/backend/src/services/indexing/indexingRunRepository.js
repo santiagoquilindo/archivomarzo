@@ -34,7 +34,18 @@ function createIndexingRun() {
   });
 }
 
-function finishIndexingRun(runId, status, counters, notes = null) {
+function serializeNotes(notes, metadata = {}) {
+  if (!metadata || Object.keys(metadata).length === 0) {
+    return notes;
+  }
+
+  return JSON.stringify({
+    message: notes,
+    ...metadata,
+  });
+}
+
+function finishIndexingRun(runId, status, counters, notes = null, metadata = {}) {
   return new Promise((resolve, reject) => {
     const finishedAt = new Date().toISOString();
 
@@ -48,7 +59,7 @@ function finishIndexingRun(runId, status, counters, notes = null) {
         counters.updated,
         counters.missing,
         counters.errors,
-        notes,
+        serializeNotes(notes, metadata),
         runId,
       ],
       (err) => {
@@ -59,6 +70,58 @@ function finishIndexingRun(runId, status, counters, notes = null) {
         resolve();
       },
     );
+  });
+}
+
+function deleteIndexingRunsByRootFolder(rootFolderId) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT id, notes FROM indexing_runs WHERE notes IS NOT NULL', (selectError, rows) => {
+      if (selectError) {
+        return reject(selectError);
+      }
+
+      const idsToDelete = rows
+        .filter((row) => {
+          try {
+            const parsed = JSON.parse(row.notes);
+            return Array.isArray(parsed.rootFolderIds) &&
+              parsed.rootFolderIds.map(Number).includes(Number(rootFolderId));
+          } catch (error) {
+            return String(row.notes).includes(`root:${rootFolderId}`);
+          }
+        })
+        .map((row) => row.id);
+
+      if (idsToDelete.length === 0) {
+        resolve({ changes: 0 });
+        return;
+      }
+
+      const placeholders = idsToDelete.map(() => '?').join(', ');
+      db.run(
+        `DELETE FROM indexing_runs WHERE id IN (${placeholders})`,
+        idsToDelete,
+        function onRun(deleteError) {
+          if (deleteError) {
+            return reject(deleteError);
+          }
+
+          resolve({ changes: this.changes || 0 });
+        }
+      );
+    });
+  });
+}
+
+function deleteAllIndexingRuns() {
+  return new Promise((resolve, reject) => {
+    db.run('DELETE FROM indexing_runs', function onRun(err) {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve({ changes: this.changes || 0 });
+    });
   });
 }
 
@@ -76,6 +139,8 @@ function getIndexingRuns() {
 
 module.exports = {
   createIndexingRun,
+  deleteAllIndexingRuns,
+  deleteIndexingRunsByRootFolder,
   finishIndexingRun,
   getIndexingRuns,
   hasRunningIndexingRun,

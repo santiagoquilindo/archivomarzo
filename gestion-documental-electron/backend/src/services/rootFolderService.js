@@ -1,5 +1,6 @@
 const path = require('path');
 const { db } = require('../db/db');
+const { deleteIndexingRunsByRootFolder } = require('./indexing/indexingRunRepository');
 const { AppError } = require('../utils/http');
 
 const PROJECT_ROOT_PATH = path.resolve(__dirname, '../../..');
@@ -45,6 +46,15 @@ function run(sql, params = []) {
     db.run(sql, params, function onRun(err) {
       if (err) return reject(err);
       resolve({ changes: this.changes || 0, lastID: this.lastID || null });
+    });
+  });
+}
+
+function exec(sql) {
+  return new Promise((resolve, reject) => {
+    db.exec(sql, (err) => {
+      if (err) return reject(err);
+      resolve();
     });
   });
 }
@@ -307,8 +317,47 @@ async function setRootFolderActive(id, isActive) {
   );
 }
 
-function deleteRootFolder(id) {
-  return run('DELETE FROM root_folders WHERE id = ?', [id]);
+async function deleteRootFolder(id) {
+  const existingFolder = await get('SELECT * FROM root_folders WHERE id = ?', [id]);
+  if (!existingFolder) {
+    return {
+      changes: 0,
+      deletedDocuments: 0,
+      deletedHistory: 0,
+      deletedIndexingRuns: 0,
+    };
+  }
+
+  await exec('BEGIN TRANSACTION');
+
+  try {
+    const deletedHistory = await run(
+      `DELETE FROM document_history
+       WHERE document_id IN (
+         SELECT id FROM documents WHERE root_folder_id = ?
+       )`,
+      [id],
+    );
+    const deletedDocuments = await run(
+      'DELETE FROM documents WHERE root_folder_id = ?',
+      [id],
+    );
+    const deletedRoot = await run('DELETE FROM root_folders WHERE id = ?', [id]);
+
+    await exec('COMMIT');
+
+    const deletedIndexingRuns = await deleteIndexingRunsByRootFolder(id);
+
+    return {
+      changes: deletedRoot.changes,
+      deletedDocuments: deletedDocuments.changes,
+      deletedHistory: deletedHistory.changes,
+      deletedIndexingRuns: deletedIndexingRuns.changes,
+    };
+  } catch (error) {
+    await exec('ROLLBACK');
+    throw error;
+  }
 }
 
 module.exports = {

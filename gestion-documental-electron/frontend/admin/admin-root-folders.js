@@ -152,7 +152,10 @@
       }
 
       await loadRootFolders();
-      notify("Carpeta raíz eliminada exitosamente.", "success");
+      notify(
+        `Carpeta raiz eliminada. Documentos removidos del indice: ${data.deletedDocuments || 0}.`,
+        "success",
+      );
     }
 
     function handleRootFolderActions(event) {

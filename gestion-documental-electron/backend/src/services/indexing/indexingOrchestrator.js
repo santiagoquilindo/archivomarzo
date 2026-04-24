@@ -33,20 +33,24 @@ async function processActiveRootFolders(userId, counters) {
     );
     await synchronizeRootFolder(folder, userId, counters);
   }
+
+  return rootFolders.map((folder) => folder.id);
 }
 
 async function runIndexingProcess({ runId, userId, finishIndexingRun }) {
   const counters = createCounters();
 
   try {
-    await processActiveRootFolders(userId, counters);
+    const rootFolderIds = await processActiveRootFolders(userId, counters);
 
     logIndexing(
       `[INDEXING] Final counters: scanned=${counters.scanned}, indexed=${counters.indexed}, updated=${counters.updated}, missing=${counters.missing}, errors=${counters.errors}`,
     );
 
     const finalResult = resolveFinalStatus(counters);
-    await finishIndexingRun(runId, finalResult.status, counters, finalResult.notes);
+    await finishIndexingRun(runId, finalResult.status, counters, finalResult.notes, {
+      rootFolderIds,
+    });
   } catch (error) {
     console.error('Indexing error:', error.message);
     counters.errors += 1;

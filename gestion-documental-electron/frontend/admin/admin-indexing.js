@@ -97,8 +97,39 @@
       }
     }
 
+    async function handleClearIndex() {
+      const confirmed = window.confirm(
+        "Esto eliminara todos los documentos indexados y su historial tecnico. Las carpetas raiz se conservaran.",
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const { response, data } = await api.clearIndex();
+        if (!response.ok) {
+          throw new Error(data.message || "No se pudo limpiar el indice");
+        }
+
+        stopIndexStatusPolling();
+        setIndexStatus("inactive");
+        notify(
+          `Indice limpiado. Documentos eliminados: ${data.deletedDocuments || 0}.`,
+          "success",
+          { duration: 6000 },
+        );
+      } catch (error) {
+        console.error("Error clearing index:", error);
+        notify(error.message || "No se pudo limpiar el indice.", "error", {
+          duration: 7000,
+        });
+      }
+    }
+
     function init() {
       bindClick(document.getElementById("indexBtn"), handleIndexingRun);
+      bindClick(document.getElementById("clearIndexBtn"), handleClearIndex);
     }
 
     function destroy() {
