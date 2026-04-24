@@ -2,43 +2,50 @@ const { db } = require('../../db/db');
 
 function getDocuments(filters = {}) {
   return new Promise((resolve, reject) => {
-    let query = 'SELECT * FROM documents WHERE 1=1';
+    let query = `
+      SELECT d.*
+      FROM documents d
+      INNER JOIN root_folders rf
+        ON rf.id = d.root_folder_id
+       AND rf.is_active = 1
+      WHERE 1=1
+    `;
     const params = [];
 
     if (filters.name) {
-      query += ' AND original_name LIKE ?';
+      query += ' AND d.original_name LIKE ?';
       params.push(`%${filters.name}%`);
     }
     if (filters.date) {
-      query += ' AND document_date = ?';
+      query += ' AND d.document_date = ?';
       params.push(filters.date);
     }
     if (filters.voucher) {
-      query += ' AND voucher_number LIKE ?';
+      query += ' AND d.voucher_number LIKE ?';
       params.push(`%${filters.voucher}%`);
     }
     if (filters.rootFolderId) {
-      query += ' AND root_folder_id = ?';
+      query += ' AND d.root_folder_id = ?';
       params.push(filters.rootFolderId);
     }
     if (filters.extension) {
-      query += ' AND file_extension = ?';
+      query += ' AND d.file_extension = ?';
       params.push(filters.extension);
     }
     if (filters.category) {
-      query += ' AND category LIKE ?';
+      query += ' AND d.category LIKE ?';
       params.push(`%${filters.category}%`);
     }
     if (filters.type) {
-      query += ' AND document_type LIKE ?';
+      query += ' AND d.document_type LIKE ?';
       params.push(`%${filters.type}%`);
     }
     if (filters.status) {
-      query += ' AND status = ?';
+      query += ' AND d.status = ?';
       params.push(filters.status);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY d.created_at DESC';
 
     db.all(query, params, (err, rows) => {
       if (err) {
