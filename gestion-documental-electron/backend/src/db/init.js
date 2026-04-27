@@ -124,7 +124,7 @@ function initDatabase() {
 
     const seedUsers = [
       { name: 'Administrador', username: 'admin', password: 'admin123', role: 'admin' },
-      { name: 'Usuario Demo', username: 'user', password: 'user123', role: 'user' }
+      { name: 'Usuario', username: 'user', password: 'user123', role: 'user' }
     ];
 
     const upsert = db.prepare(`
