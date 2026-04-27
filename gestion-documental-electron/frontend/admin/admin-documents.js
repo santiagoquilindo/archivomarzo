@@ -31,7 +31,8 @@
       window.documentUi.clearDocumentsList({
         list: "documentsList",
         hint: "documentsHint",
-        initialMessage: 'Los documentos aparecerán cuando pulses "Buscar".',
+        initialMessage:
+          "No hay documentos indexados todavia. Agrega una carpeta para comenzar y ejecuta la indexacion.",
       });
     }
 
@@ -81,7 +82,14 @@
         status: document.getElementById("filterStatus").value,
       };
       const { response, data } = await api.searchDocuments(filters);
-      renderDocuments(response.ok && Array.isArray(data) ? data : []);
+      window.documentUi.renderDocuments({
+        list: document.getElementById("documentsList"),
+        hint: document.getElementById("documentsHint"),
+        docs: response.ok && Array.isArray(data) ? data : [],
+        actions: window.adminState.ADMIN_DOCUMENT_ACTIONS,
+        emptyMessage:
+          "No hay resultados en el indice actual. Verifica filtros o ejecuta una nueva indexacion.",
+      });
     }
 
     async function handleDocumentSearch() {
@@ -99,7 +107,7 @@
 
       if (!selection) {
         pathInput.value = "";
-        label.textContent = "Ningún archivo seleccionado";
+        label.textContent = "Ningun archivo seleccionado";
         return;
       }
 
@@ -182,7 +190,7 @@
 
       event.target.reset();
       document.getElementById("pickedDocFileLabel").textContent =
-        "Ningún archivo seleccionado";
+        "Ningun archivo seleccionado";
 
       if (state.hasSearchedDocuments) {
         await searchDocuments();

@@ -29,7 +29,7 @@
         const { response, data } = await api.getIndexingRuns();
 
         if (!response.ok) {
-          throw new Error("No se pudo consultar el estado de indexación");
+          throw new Error("No se pudo consultar el estado de indexacion");
         }
 
         const latestRun = Array.isArray(data) && data.length > 0 ? data[0] : null;
@@ -48,7 +48,7 @@
         stopIndexStatusPolling();
 
         if (latestRun.status === "completed") {
-          setIndexStatus("inactive");
+          setIndexStatus("inactive", "finalizada");
           return;
         }
 
@@ -81,17 +81,19 @@
       try {
         const { response, data } = await api.runIndexing();
         if (!response.ok) {
-          throw new Error(data.message || "No se pudo iniciar la indexación");
+          throw new Error(data.message || "No se pudo iniciar la indexacion");
         }
 
         startIndexStatusPolling();
-        notify("La indexación se inició correctamente en segundo plano.", "success", {
-          duration: 5000,
-        });
+        notify(
+          "La indexacion se inicio correctamente en segundo plano. Solo se procesaran carpetas activas.",
+          "success",
+          { duration: 5000 },
+        );
       } catch (error) {
         console.error("Error starting indexing:", error);
         setIndexStatus("unavailable", error.message);
-        notify(error.message || "No se pudo iniciar la indexación.", "error", {
+        notify(error.message || "No se pudo iniciar la indexacion.", "error", {
           duration: 7000,
         });
       }
@@ -99,7 +101,7 @@
 
     async function handleClearIndex() {
       const confirmed = window.confirm(
-        "Esto eliminara todos los documentos indexados y su historial tecnico. Las carpetas raiz se conservaran.",
+        "Vas a limpiar el indice completo.\n\nEsto eliminara todos los documentos indexados y su historial tecnico actual. Las carpetas raiz se conservaran, pero deberas ejecutar una nueva indexacion para volver a buscar documentos.\n\n¿Deseas continuar?"
       );
 
       if (!confirmed) {
@@ -115,7 +117,7 @@
         stopIndexStatusPolling();
         setIndexStatus("inactive");
         notify(
-          `Indice limpiado. Documentos eliminados: ${data.deletedDocuments || 0}.`,
+          `Indice limpiado. Documentos eliminados: ${data.deletedDocuments || 0}. Ejecuta una nueva indexacion para reconstruir la busqueda.`,
           "success",
           { duration: 6000 },
         );

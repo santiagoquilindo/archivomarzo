@@ -64,7 +64,7 @@
 
       if (!state.currentRootFolders.length) {
         list.innerHTML =
-          '<li class="root-folder-item">No hay carpetas raíz registradas.</li>';
+          '<li class="root-folder-empty"><strong>No hay carpetas agregadas.</strong><span>Agrega una carpeta para comenzar y luego ejecuta la indexacion.</span></li>';
         return;
       }
 
@@ -89,6 +89,7 @@
                 </span>
                 <button
                   type="button"
+                  class="button-secondary"
                   data-folder-action="toggle"
                   data-folder-id="${folder.id}"
                   data-folder-next-state="${isActive ? "false" : "true"}"
@@ -97,6 +98,7 @@
                 </button>
                 <button
                   type="button"
+                  class="button-danger"
                   data-folder-action="delete"
                   data-folder-id="${folder.id}"
                 >
@@ -119,7 +121,7 @@
 
       const { response, data } = await api.createRootFolder(payload);
       if (!response.ok) {
-        notify(data.message || "No se pudo agregar la carpeta raíz.", "error");
+        notify(data.message || "No se pudo agregar la carpeta raiz.", "error");
         return;
       }
 
@@ -127,27 +129,39 @@
       document.getElementById("pickedRootFolderLabel").textContent =
         "Ninguna carpeta seleccionada";
       await loadRootFolders();
-      notify("Carpeta raíz agregada exitosamente.", "success");
+      notify(
+        "Carpeta raiz agregada exitosamente. Ejecuta la indexacion para incluir sus documentos en la busqueda.",
+        "success",
+        { duration: 5500 },
+      );
     }
 
     async function toggleFolder(id, active) {
       const { response, data } = await api.updateRootFolderStatus(id, active);
       if (!response.ok) {
-        notify(data.message || "No se pudo actualizar la carpeta raíz.", "error");
+        notify(data.message || "No se pudo actualizar la carpeta raiz.", "error");
         return;
       }
 
       await loadRootFolders();
       notify(
-        `Carpeta raíz ${active ? "activada" : "desactivada"} exitosamente.`,
+        `Carpeta raiz ${active ? "activada" : "desactivada"} exitosamente. Recuerda volver a indexar si quieres reflejar el cambio en la busqueda.`,
         "success",
       );
     }
 
     async function deleteFolder(id) {
+      const confirmed = window.confirm(
+        "Vas a eliminar esta carpeta raiz del indice.\n\nLos documentos asociados dejaran de aparecer en la busqueda indexada.\n\n¿Deseas continuar?"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
       const { response, data } = await api.deleteRootFolder(id);
       if (!response.ok) {
-        notify(data.message || "No se pudo eliminar la carpeta raíz.", "error");
+        notify(data.message || "No se pudo eliminar la carpeta raiz.", "error");
         return;
       }
 

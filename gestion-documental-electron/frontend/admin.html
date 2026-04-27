@@ -90,11 +90,66 @@
                 <div class="section-heading">
                   <h2>Dashboard administrativo</h2>
                   <p>
-                    Selecciona un modulo para trabajar sin cargar todo el contenido
-                    al mismo tiempo. Cada acceso abre una sola vista principal.
+                    Este panel funciona como buscador e indexador local. Sigue el flujo
+                    recomendado para mantener el indice limpio y la busqueda clara.
                   </p>
                 </div>
                 <span class="section-chip">Inicio</span>
+              </div>
+
+              <div class="dashboard-hero-grid">
+                <div class="workflow-card workflow-card-featured">
+                  <div class="workflow-header">
+                    <p class="page-kicker">Flujo recomendado</p>
+                    <h3>Como usar el indice local</h3>
+                    <p class="workflow-summary">
+                      El panel administra un indice documental local. Primero defines
+                      fuentes, luego sincronizas y despues consultas el resultado ya indexado.
+                    </p>
+                  </div>
+                  <ol class="workflow-list">
+                    <li>
+                      <strong>1. Agregar carpeta</strong>
+                      <span>Registra una o varias carpetas raiz para definir donde leer documentos.</span>
+                    </li>
+                    <li>
+                      <strong>2. Ejecutar indexacion</strong>
+                      <span>Procesa solo carpetas activas y actualiza el indice disponible para buscar.</span>
+                    </li>
+                    <li>
+                      <strong>3. Buscar documentos</strong>
+                      <span>Consulta unicamente documentos indexados en el estado actual del indice.</span>
+                    </li>
+                    <li>
+                      <strong>4. Limpiar o reemplazar indice</strong>
+                      <span>Si cambias carpetas o quieres reiniciar el indice, limpia y vuelve a indexar.</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <aside class="dashboard-sidecard">
+                  <span class="dashboard-sidecard-label">Indice local</span>
+                  <h3>Operacion recomendada</h3>
+                  <p>
+                    La busqueda solo refleja documentos actualmente indexados desde
+                    carpetas activas. Si cambias fuentes o limpias el indice, vuelve
+                    a ejecutar la indexacion antes de consultar.
+                  </p>
+                  <div class="dashboard-sidecard-points">
+                    <div class="dashboard-point">
+                      <strong>Activo</strong>
+                      <span>Las roots activas participan en la lectura.</span>
+                    </div>
+                    <div class="dashboard-point">
+                      <strong>Indexado</strong>
+                      <span>Solo lo sincronizado aparece en busqueda.</span>
+                    </div>
+                    <div class="dashboard-point">
+                      <strong>Limpio</strong>
+                      <span>Si reemplazas fuentes, reconstruye el indice.</span>
+                    </div>
+                  </div>
+                </aside>
               </div>
 
               <div class="admin-overview-grid">
@@ -103,8 +158,9 @@
                   class="admin-overview-card"
                   data-admin-view-trigger="root-folders"
                 >
-                  <span class="admin-overview-eyebrow">Administracion base</span>
-                  <strong>Carpetas raiz documentales</strong>
+                  <span class="admin-overview-eyebrow">Paso 1</span>
+                  <span class="admin-overview-icon" aria-hidden="true">01</span>
+                  <strong>Agregar carpeta</strong>
                   <span>
                     Registra, activa o elimina carpetas raiz desde un modulo dedicado.
                   </span>
@@ -115,10 +171,11 @@
                   class="admin-overview-card"
                   data-admin-view-trigger="indexing"
                 >
-                  <span class="admin-overview-eyebrow">Proceso tecnico</span>
-                  <strong>Indexacion</strong>
+                  <span class="admin-overview-eyebrow">Paso 2</span>
+                  <span class="admin-overview-icon" aria-hidden="true">02</span>
+                  <strong>Ejecutar indexacion</strong>
                   <span>
-                    Ejecuta el proceso y consulta el estado actual sin distracciones.
+                    Procesa solo carpetas activas y mantiene actualizado el indice local.
                   </span>
                 </button>
 
@@ -127,22 +184,24 @@
                   class="admin-overview-card"
                   data-admin-view-trigger="documents"
                 >
-                  <span class="admin-overview-eyebrow">Consulta operativa</span>
-                  <strong>Documentos</strong>
+                  <span class="admin-overview-eyebrow">Paso 3</span>
+                  <span class="admin-overview-icon" aria-hidden="true">03</span>
+                  <strong>Buscar documentos</strong>
                   <span>
-                    Busca, revisa detalle, abre archivos y edita registros existentes.
+                    Consulta el indice actual, revisa detalle, abre archivos y edita registros.
                   </span>
                 </button>
 
                 <button
                   type="button"
                   class="admin-overview-card"
-                  data-admin-view-trigger="create-document"
+                  data-admin-view-trigger="indexing"
                 >
-                  <span class="admin-overview-eyebrow">Registro</span>
-                  <strong>Crear documento nuevo</strong>
+                  <span class="admin-overview-eyebrow">Paso 4</span>
+                  <span class="admin-overview-icon" aria-hidden="true">04</span>
+                  <strong>Limpiar o reemplazar indice</strong>
                   <span>
-                    Carga archivos, completa metadatos y crea nuevos documentos.
+                    Reinicia el indice cuando cambies roots o necesites reconstruir la busqueda.
                   </span>
                 </button>
               </div>
@@ -162,10 +221,16 @@
                   <h2>Carpetas raiz documentales</h2>
                   <p>
                     Administra las ubicaciones base del sistema y controla cuales
-                    participan en los procesos documentales.
+                    participan en los procesos documentales. Si no hay carpetas agregadas,
+                    no habra documentos para indexar.
                   </p>
                 </div>
                 <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <div class="info-banner">
+                <strong>Paso 1:</strong>
+                <span>Agrega una carpeta raiz para comenzar. Solo las carpetas activas participan en la indexacion.</span>
               </div>
 
               <div class="panel-layout">
@@ -225,18 +290,33 @@
                   <h2>Indexacion</h2>
                   <p>
                     Ejecuta el proceso tecnico de lectura documental y revisa su
-                    estado en una vista enfocada.
+                    estado en una vista enfocada. La indexacion trabaja unicamente
+                    sobre carpetas activas.
                   </p>
                 </div>
                 <span class="section-chip">Modulo activo</span>
               </div>
 
+              <div class="info-banner info-banner-muted">
+                <strong>Paso 2:</strong>
+                <span>Ejecuta la indexacion despues de agregar, activar o desactivar carpetas para mantener el indice actualizado.</span>
+              </div>
+
               <div class="index-panel">
-                <button id="indexBtn" type="button">Ejecutar indexacion</button>
-                <button id="clearIndexBtn" type="button">Limpiar indice</button>
+                <div class="index-actions">
+                  <button id="indexBtn" type="button" class="button-primary">Ejecutar indexacion</button>
+                  <button id="clearIndexBtn" type="button" class="button-danger">Limpiar indice</button>
+                </div>
+                <p class="index-help">
+                  Estado del proceso: inactiva, en ejecucion o finalizada.
+                </p>
                 <div id="indexStatus" class="index-status-pill">
                   <span id="indexStatusDot" class="index-status-dot"></span>
                   <span id="indexStatusText">Indexacion inactiva</span>
+                </div>
+                <div class="warning-panel">
+                  <strong>Accion critica:</strong>
+                  <span>Limpiar el indice elimina todos los documentos indexados actuales. Luego debes ejecutar una nueva indexacion para volver a buscar.</span>
                 </div>
               </div>
             </section>
@@ -255,10 +335,16 @@
                   <h2>Documentos</h2>
                   <p>
                     Filtra documentos por nombre, comprobante, carpeta raiz o estado
-                    y accede a sus acciones disponibles.
+                    y accede a sus acciones disponibles. La busqueda solo consulta
+                    documentos actualmente indexados.
                   </p>
                 </div>
                 <span class="section-chip">Modulo activo</span>
+              </div>
+
+              <div class="info-banner info-banner-muted">
+                <strong>Paso 3:</strong>
+                <span>Si no encuentras resultados, revisa que existan carpetas activas e indexadas antes de volver a buscar.</span>
               </div>
 
               <div class="panel-layout">
@@ -280,7 +366,7 @@
                 </div>
 
                 <p id="documentsHint" class="documents-hint">
-                  Los documentos apareceran cuando pulses "Buscar".
+                  No hay documentos indexados todavia. Agrega una carpeta para comenzar y ejecuta la indexacion.
                 </p>
                 <div id="documentsList"></div>
               </div>
