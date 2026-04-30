@@ -64,7 +64,7 @@
               class="admin-switcher-btn"
               data-admin-view-trigger="indexing"
             >
-              Indexacion
+              sincronizar
             </button>
             <button
               type="button"
@@ -90,8 +90,8 @@
                 <div class="section-heading">
                   <h2>Dashboard administrativo</h2>
                   <p>
-                    Este panel funciona como buscador e indexador local. Sigue el flujo
-                    recomendado para mantener el indice limpio y la busqueda clara.
+                    Este panel te permite buscar documentos y mantenerlos actualizados.
+Sigue los pasos recomendados para que la búsqueda funcione correctamente.
                   </p>
                 </div>
                 <span class="section-chip">Inicio</span>
@@ -113,16 +113,16 @@
                       <span>Registra una o varias carpetas raiz para definir donde leer documentos.</span>
                     </li>
                     <li>
-                      <strong>2. Ejecutar indexacion</strong>
+                      <strong>2. sincronizar</strong>
                       <span>Procesa solo carpetas activas y actualiza el indice disponible para buscar.</span>
                     </li>
                     <li>
                       <strong>3. Buscar documentos</strong>
-                      <span>Consulta unicamente documentos indexados en el estado actual del indice.</span>
+                      <span>Consulta unicamente documentos sincronizados en el estado actual del indice.</span>
                     </li>
                     <li>
                       <strong>4. Limpiar o reemplazar indice</strong>
-                      <span>Si cambias carpetas o quieres reiniciar el indice, limpia y vuelve a indexar.</span>
+                      <span>Si cambias carpetas o quieres reiniciar el indice, limpia y vuelve a sincronizar.</span>
                     </li>
                   </ol>
                 </div>
@@ -131,22 +131,22 @@
                   <span class="dashboard-sidecard-label">Indice local</span>
                   <h3>Operacion recomendada</h3>
                   <p>
-                    La busqueda solo refleja documentos actualmente indexados desde
+                    La busqueda solo refleja documentos actualmente sincronizados desde
                     carpetas activas. Si cambias fuentes o limpias el indice, vuelve
-                    a ejecutar la indexacion antes de consultar.
+                    a ejecutar la sincronizacion antes de consultar.
                   </p>
                   <div class="dashboard-sidecard-points">
                     <div class="dashboard-point">
                       <strong>Activo</strong>
-                      <span>Las roots activas participan en la lectura.</span>
+                      <span>Carpetas habilitadas para búsqueda.</span>
                     </div>
                     <div class="dashboard-point">
-                      <strong>Indexado</strong>
+                      <strong>Sincronizado</strong>
                       <span>Solo lo sincronizado aparece en busqueda.</span>
                     </div>
                     <div class="dashboard-point">
                       <strong>Limpio</strong>
-                      <span>Si reemplazas fuentes, reconstruye el indice.</span>
+                      <span>Si cambias carpetas, debes sincronizar nuevamente.</span>
                     </div>
                   </div>
                 </aside>
@@ -173,7 +173,7 @@
                 >
                   <span class="admin-overview-eyebrow">Paso 2</span>
                   <span class="admin-overview-icon" aria-hidden="true">02</span>
-                  <strong>Ejecutar indexacion</strong>
+                  <strong>Ejecutar sincronizacion</strong>
                   <span>
                     Procesa solo carpetas activas y mantiene actualizado el indice local.
                   </span>
@@ -201,7 +201,7 @@
                   <span class="admin-overview-icon" aria-hidden="true">04</span>
                   <strong>Limpiar o reemplazar indice</strong>
                   <span>
-                    Reinicia el indice cuando cambies roots o necesites reconstruir la busqueda.
+                    Usa esta opción si cambias las carpetas o la búsqueda no muestra resultados correctos.
                   </span>
                 </button>
               </div>

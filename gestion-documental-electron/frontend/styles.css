@@ -86,6 +86,7 @@ a {
 }
 
 .login-panel {
+  order: 2;
   padding: 48px 42px;
   display: flex;
   flex-direction: column;
@@ -129,6 +130,7 @@ a {
 }
 
 .login-aside {
+  order: 1;
   position: relative;
   overflow: hidden;
   padding: 42px;
