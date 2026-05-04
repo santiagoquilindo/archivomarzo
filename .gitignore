@@ -1,3 +1,6 @@
 electron-user-data/
+gestion-documental-electron/data/*.db
+gestion-documental-electron/data/*.sqlite
+gestion-documental-electron/data/*.sqlite3
 gestion-documental-electron/reports/*.json
 gestion-documental-electron/scripts/
