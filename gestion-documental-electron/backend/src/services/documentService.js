@@ -1,4 +1,5 @@
 const {
+  getDocumentDebugStats,
   getDocuments,
   getDocumentById,
 } = require('./documents/documentRepository');
@@ -16,6 +17,7 @@ const {
 } = require('./documents/documentFileService');
 
 module.exports = {
+  getDocumentDebugStats,
   getDocuments,
   getDocumentById,
   createDocument,

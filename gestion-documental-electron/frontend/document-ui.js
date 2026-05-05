@@ -145,6 +145,21 @@
     list.appendChild(table);
   }
 
+  function getEmptySearchMessage(stats, filters = {}) {
+    const totalDocuments = Number(stats?.totalDocuments || 0);
+    const hasSearch = Boolean(String(filters.search || "").trim());
+
+    if (totalDocuments === 0) {
+      return "No hay documentos indexados todavía";
+    }
+
+    if (hasSearch) {
+      return "Hay documentos indexados, pero ninguno coincide";
+    }
+
+    return "No se encontraron documentos";
+  }
+
   function bindDelegatedClicks(containerTarget, handler) {
     const container =
       typeof containerTarget === "string"
@@ -177,6 +192,7 @@
     bindDelegatedClicks,
     clearDocumentsList,
     escapeHtml,
+    getEmptySearchMessage,
     getStatusBadge,
     normalizeDocumentStatus,
     renderDocuments,

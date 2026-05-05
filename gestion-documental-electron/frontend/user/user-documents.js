@@ -26,14 +26,36 @@
       });
     }
 
+    async function resolveEmptyMessage(filters) {
+      const { response, data } = await api.getDocumentStats();
+      if (!response.ok) {
+        return "No se encontraron documentos";
+      }
+
+      return window.documentUi.getEmptySearchMessage(data, filters);
+    }
+
     async function searchDocuments() {
       const filters = {
-        name: document.getElementById("filterName").value,
+        search: document.getElementById("filterName").value,
         voucher: document.getElementById("filterVoucher").value,
         status: document.getElementById("filterStatus").value,
       };
       const { response, data } = await api.searchDocuments(filters);
-      renderDocuments(response.ok && Array.isArray(data) ? data : []);
+      const docs = response.ok && Array.isArray(data) ? data : [];
+
+      if (docs.length > 0) {
+        renderDocuments(docs);
+        return;
+      }
+
+      window.documentUi.renderDocuments({
+        list: document.getElementById("documentsList"),
+        hint: document.getElementById("documentsHint"),
+        docs,
+        actions: window.userState.USER_DOCUMENT_ACTIONS,
+        emptyMessage: await resolveEmptyMessage(filters),
+      });
     }
 
     async function handleDocumentSearch() {

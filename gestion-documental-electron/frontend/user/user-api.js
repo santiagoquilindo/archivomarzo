@@ -26,6 +26,10 @@
     return request(path);
   }
 
+  function getDocumentStats() {
+    return request("/api/documents/debug/stats");
+  }
+
   function getDocument(id) {
     return request(`/api/documents/${id}`);
   }
@@ -44,6 +48,7 @@
     getMe,
     logout,
     searchDocuments,
+    getDocumentStats,
     getDocument,
     openDocument,
     getDocumentHistory,

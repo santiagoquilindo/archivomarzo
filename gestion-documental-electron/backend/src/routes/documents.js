@@ -3,6 +3,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 const {
+  getDocumentDebugStats,
   getDocuments,
   getDocumentById,
   createDocument,
@@ -121,6 +122,7 @@ async function openFileWithSystem(absolutePath) {
 
 router.get('/', verifyToken, async (req, res) => {
   const filters = {
+    search: normalizeText(req.query.search),
     name: normalizeText(req.query.name),
     date: normalizeText(req.query.date),
     voucher: normalizeText(req.query.voucher),
@@ -137,6 +139,16 @@ router.get('/', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Get documents error:', error.message);
     return sendError(res, error, 'Error obteniendo documentos');
+  }
+});
+
+router.get('/debug/stats', verifyToken, async (req, res) => {
+  try {
+    const stats = await getDocumentDebugStats();
+    return res.json(stats);
+  } catch (error) {
+    console.error('Get document debug stats error:', error.message);
+    return sendError(res, error, 'Error obteniendo diagnostico de documentos');
   }
 });
 

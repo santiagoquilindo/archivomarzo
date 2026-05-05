@@ -1,4 +1,64 @@
-const { db } = require('../../db/db');
+const { db, DB_PATH } = require('../../db/db');
+
+const SEARCHABLE_FIELDS = [
+  'original_name',
+  'relative_path',
+  'absolute_path',
+  'file_extension',
+  'root_folder_name',
+  'category',
+  'document_type',
+  'notes',
+  'voucher_number',
+];
+
+function createPathSearchVariants(value) {
+  const variants = new Set([value]);
+
+  if (value.includes('/')) {
+    variants.add(value.replace(/\//g, '\\'));
+  }
+
+  if (value.includes('\\')) {
+    variants.add(value.replace(/\\/g, '/'));
+  }
+
+  return [...variants].map((variant) => `%${variant}%`);
+}
+
+function buildSearchClause(search) {
+  if (!search) {
+    return { clause: '', params: [] };
+  }
+
+  const params = [];
+  const terms = SEARCHABLE_FIELDS.map((field) => {
+    if (field === 'relative_path' || field === 'absolute_path') {
+      const variants = createPathSearchVariants(search);
+      params.push(...variants, `%${search.replace(/\\/g, '/')}%`);
+      return `(
+        LOWER(COALESCE(d.${field}, '')) LIKE LOWER(?)
+        ${variants.length > 1 ? " OR LOWER(COALESCE(d." + field + ", '')) LIKE LOWER(?)" : ''}
+        OR LOWER(REPLACE(COALESCE(d.${field}, ''), '\\', '/')) LIKE LOWER(?)
+      )`;
+    }
+
+    params.push(`%${search}%`);
+    return `LOWER(COALESCE(d.${field}, '')) LIKE LOWER(?)`;
+  });
+
+  return {
+    clause: ` AND (${terms.join(' OR ')})`,
+    params,
+  };
+}
+
+function logSearchQuery(search, query, params, resultCount) {
+  console.log('[DOCUMENT_SEARCH] term:', search || '');
+  console.log('[DOCUMENT_SEARCH] sql:', query.replace(/\s+/g, ' ').trim());
+  console.log('[DOCUMENT_SEARCH] params:', JSON.stringify(params));
+  console.log('[DOCUMENT_SEARCH] results:', resultCount);
+}
 
 function getDocuments(filters = {}) {
   return new Promise((resolve, reject) => {
@@ -11,6 +71,12 @@ function getDocuments(filters = {}) {
       WHERE 1=1
     `;
     const params = [];
+    const searchClause = buildSearchClause(filters.search);
+
+    if (searchClause.clause) {
+      query += searchClause.clause;
+      params.push(...searchClause.params);
+    }
 
     if (filters.name) {
       query += ' AND d.original_name LIKE ?';
@@ -52,7 +118,85 @@ function getDocuments(filters = {}) {
         return reject(err);
       }
 
+      if (filters.search) {
+        logSearchQuery(filters.search, query, params, rows.length);
+      }
+
       resolve(rows);
+    });
+  });
+}
+
+function getDocumentDebugStats() {
+  return new Promise((resolve, reject) => {
+    const stats = {
+      databasePath: DB_PATH,
+    };
+
+    db.serialize(() => {
+      db.get('SELECT COUNT(*) AS total FROM documents', (totalError, totalRow) => {
+        if (totalError) {
+          reject(totalError);
+          return;
+        }
+
+        stats.totalDocuments = totalRow?.total || 0;
+
+        db.all(
+          'SELECT COALESCE(status, "pending") AS status, COUNT(*) AS total FROM documents GROUP BY COALESCE(status, "pending") ORDER BY status',
+          (statusError, statusRows) => {
+            if (statusError) {
+              reject(statusError);
+              return;
+            }
+
+            stats.totalByStatus = statusRows || [];
+
+            db.get(
+              'SELECT COUNT(*) AS total FROM root_folders WHERE is_active = 1',
+              (rootFolderError, rootFolderRow) => {
+                if (rootFolderError) {
+                  reject(rootFolderError);
+                  return;
+                }
+
+                stats.activeRootFolders = rootFolderRow?.total || 0;
+
+                db.all(
+                  `
+                    SELECT id, original_name, relative_path, absolute_path, root_folder_id,
+                           root_folder_name, file_extension, status, created_at, updated_at
+                    FROM documents
+                    ORDER BY datetime(created_at) DESC, id DESC
+                    LIMIT 10
+                  `,
+                  (documentsError, documentRows) => {
+                    if (documentsError) {
+                      reject(documentsError);
+                      return;
+                    }
+
+                    stats.lastIndexedDocuments = documentRows || [];
+
+                    db.get(
+                      'SELECT * FROM indexing_runs ORDER BY datetime(started_at) DESC, id DESC LIMIT 1',
+                      (runError, runRow) => {
+                        if (runError) {
+                          reject(runError);
+                          return;
+                        }
+
+                        stats.lastIndexingRun = runRow || null;
+                        resolve(stats);
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      });
     });
   });
 }
@@ -165,6 +309,7 @@ function updateDocumentStatus(id, status, performedAt, userId) {
 }
 
 module.exports = {
+  getDocumentDebugStats,
   getDocuments,
   getDocumentById,
   getRootFolderById,

@@ -74,21 +74,31 @@
       }
     }
 
+    async function resolveEmptyMessage(filters) {
+      const { response, data } = await api.getDocumentStats();
+      if (!response.ok) {
+        return "No se encontraron documentos";
+      }
+
+      return window.documentUi.getEmptySearchMessage(data, filters);
+    }
+
     async function searchDocuments() {
       const filters = {
-        name: document.getElementById("filterName").value,
+        search: document.getElementById("filterName").value,
         voucher: document.getElementById("filterVoucher").value,
         rootFolderId: document.getElementById("filterRootFolder").value,
         status: document.getElementById("filterStatus").value,
       };
       const { response, data } = await api.searchDocuments(filters);
+      const docs = response.ok && Array.isArray(data) ? data : [];
+
       window.documentUi.renderDocuments({
         list: document.getElementById("documentsList"),
         hint: document.getElementById("documentsHint"),
-        docs: response.ok && Array.isArray(data) ? data : [],
+        docs,
         actions: window.adminState.ADMIN_DOCUMENT_ACTIONS,
-        emptyMessage:
-          "No hay resultados en el indice actual. Verifica filtros o ejecuta una nueva indexacion.",
+        emptyMessage: docs.length ? undefined : await resolveEmptyMessage(filters),
       });
     }
 

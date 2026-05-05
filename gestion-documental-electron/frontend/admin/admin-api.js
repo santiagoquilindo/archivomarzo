@@ -68,6 +68,10 @@
     return request(path);
   }
 
+  function getDocumentStats() {
+    return request("/api/documents/debug/stats");
+  }
+
   function getDocument(id) {
     return request(`/api/documents/${id}`);
   }
@@ -105,6 +109,7 @@
     getIndexingRuns,
     clearIndex,
     searchDocuments,
+    getDocumentStats,
     getDocument,
     createDocument,
     updateDocument,
