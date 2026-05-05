@@ -30,16 +30,56 @@
     "electron-builder": "^24.4.0"
   },
   "build": {
-    "appId": "com.example.gestiondocumental",
-    "productName": "GestionDocumental",
+    "appId": "co.sagcauca.gestiondocumental",
+    "productName": "Gestion Documental SAG Cauca",
+    "artifactName": "Gestion-Documental-SAG-Cauca-Setup-${version}.${ext}",
     "directories": {
+      "buildResources": "build",
       "output": "dist"
     },
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/**/*.node"
+    ],
+    "npmRebuild": false,
     "files": [
-      "**/*"
+      "backend/**/*",
+      "build/icon.ico",
+      "electron/**/*",
+      "frontend/**/*",
+      "package.json",
+      "!data/**/*",
+      "!reports/**/*",
+      "!test_docs/**/*",
+      "!scripts/**/*",
+      "!*.db",
+      "!*.sqlite",
+      "!*.sqlite3",
+      "!*.log"
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gestion Documental SAG Cauca",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "allowElevation": false
     }
   }
 }

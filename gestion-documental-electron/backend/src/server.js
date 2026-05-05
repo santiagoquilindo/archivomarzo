@@ -8,7 +8,7 @@ const protectedRoutes = require('./routes/protected');
 const rootFolderRoutes = require('./routes/rootFolders');
 const documentRoutes = require('./routes/documents');
 const indexingRoutes = require('./routes/indexing');
-const { BASE_URL, FRONTEND_PUBLIC_CONFIG, HOST, PORT } = require('./config');
+const { HOST, PORT } = require('./config');
 const { sendError } = require('./utils/http');
 
 const app = express();
@@ -43,7 +43,9 @@ app.use(cors({ origin: true, credentials: true }));
 
 app.get('/app-config.js', (req, res) => {
   res.type('application/javascript');
-  res.send(`window.APP_CONFIG = ${JSON.stringify(FRONTEND_PUBLIC_CONFIG, null, 2)};`);
+  res.send(`window.APP_CONFIG = ${JSON.stringify({
+    BASE_URL: getServerBaseUrl(),
+  }, null, 2)};`);
 });
 
 app.use('/api/auth', authRoutes);
@@ -82,6 +84,15 @@ function buildListenError(error, port) {
   return error;
 }
 
+function getServerPort() {
+  const address = activeServer?.address();
+  return typeof address === 'object' && address ? address.port : PORT;
+}
+
+function getServerBaseUrl() {
+  return `http://${HOST}:${getServerPort()}`;
+}
+
 function startServer(options = {}) {
   if (activeServer) {
     return Promise.resolve(activeServer);
@@ -91,7 +102,7 @@ function startServer(options = {}) {
     return activeStartPromise;
   }
 
-  const port = Number.parseInt(options.port || PORT, 10);
+  const port = Number.parseInt(options.port ?? PORT, 10);
   const host = options.host || HOST;
 
   ensureDatabaseInitialized();
@@ -100,7 +111,7 @@ function startServer(options = {}) {
     const server = app.listen(port, host, () => {
       activeServer = server;
       activeStartPromise = null;
-      console.log(`API local escuchando en http://${host}:${port}`);
+      console.log(`API local escuchando en ${getServerBaseUrl()}`);
       resolve(server);
     });
 
@@ -141,6 +152,7 @@ if (require.main === module) {
 
 module.exports = {
   app,
+  getServerBaseUrl,
   startServer,
   stopServer,
 };
