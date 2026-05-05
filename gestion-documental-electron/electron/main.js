@@ -5,9 +5,12 @@ let mainWindow = null;
 let backendStartedByElectron = false;
 let serverApi = null;
 
+const APP_NAME = 'Gestion Documental SAG Cauca';
 const isProduction = app.isPackaged;
 
 function configureRuntimePaths() {
+  app.setName(APP_NAME);
+
   const userDataPath = isProduction
     ? app.getPath('userData')
     : path.join(__dirname, '..', '..', 'electron-user-data');
